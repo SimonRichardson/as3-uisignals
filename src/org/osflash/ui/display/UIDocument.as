@@ -88,8 +88,7 @@ package org.osflash.ui.display
 		public function captureTarget(point : Point) : ISignalTarget
 		{
 			const elements : Vector.<IDOMNode> = dom_namespace::children;
-			
-			if(null == elements)
+			if(null != elements)
 			{
 				var target : ISignalTarget;
 				var index : int = elements.length;

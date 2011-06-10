@@ -8,6 +8,7 @@ package org.osflash.ui.signals
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.text.TextField;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
@@ -18,6 +19,16 @@ package org.osflash.ui.signals
 		 * @private
 		 */
 		private var _focus : ISignalTarget;
+		
+		/**
+		 * @private
+		 */
+		private var _lastTarget : ISignalTarget;
+		
+		/**
+		 * @private
+		 */
+		private var _hoverTarget : ISignalTarget;
 		
 		/**
 		 * @private
@@ -48,6 +59,16 @@ package org.osflash.ui.signals
 		 * @private
 		 */
 		private var _mousePos : Point;
+		
+		/**
+		 * @private
+		 */
+		private var _mouseUpPos : Point;
+		
+		/**
+		 * @private
+		 */
+		private var _mouseLastPos : Point;
 				
 		/**
 		 * @private
@@ -63,6 +84,11 @@ package org.osflash.ui.signals
 		 * @private
 		 */
 		private var _nativeDeactivateSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeEnterFrameSignal : ISignal;
 		
 		/**
 		 * @private
@@ -94,6 +120,8 @@ package org.osflash.ui.signals
 			_stage.stageFocusRect = false;
 			
 			_mousePos = new Point();
+			_mouseUpPos = new Point();
+			_mouseLastPos = new Point();
 			_mouseDownPos = new Point();
 			
 			_frameRate = new SignalManagerFrameRate();
@@ -102,6 +130,8 @@ package org.osflash.ui.signals
 			_nativeActivateSignal.add(handleActiveSignal);
 			
 			_nativeDeactivateSignal = new NativeSignal(_stage, Event.DEACTIVATE);
+			_nativeEnterFrameSignal = new NativeSignal(_stage, Event.ENTER_FRAME);
+			
 			_nativeMouseDownSignal = new NativeSignal(_stage, MouseEvent.MOUSE_DOWN, MouseEvent);
 			_nativeMouseMoveSignal = new NativeSignal(_stage, MouseEvent.MOUSE_MOVE, MouseEvent);
 			_nativeMouseUpSignal = new NativeSignal(_stage, MouseEvent.MOUSE_UP, MouseEvent);
@@ -137,6 +167,35 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
+		private function setFocus(child : ISignalTarget) : void
+		{
+			if ( null == _stage.focus || !( _stage.focus is TextField ) )
+				_stage.focus = _root.displayObjectContainer;
+			
+			if(_focus == child)	return;
+			
+			var target : ISignalTarget;
+			if(null != _focus)
+			{
+				target = _focus;
+				// TODO : Dispatch focusOutSignal
+			}
+			
+			if(null == child)
+				_focus = null;
+			else
+			{
+				//const focusOut : ISignalTarget = _focus;
+				//const focusIn : ISignalTarget = child;
+				
+				_focus = child;
+				// TODO : Dispatch focusInSignal
+			}
+		}
+		
+		/**
+		 * @private
+		 */
 		private function handleActiveSignal(event : Event) : void
 		{
 			_enabled = true;
@@ -144,6 +203,7 @@ package org.osflash.ui.signals
 			_stage.frameRate = _frameRate.max;
 			
 			_nativeDeactivateSignal.add(handleDeactivateSignal);
+			_nativeEnterFrameSignal.add(handleEnterFrameSignal);
 			_nativeMouseDownSignal.add(handleMouseDownSignal);
 			_nativeMouseMoveSignal.add(handleMouseMoveSignal);
 			_nativeMouseUpSignal.add(handleMouseUpSignal);
@@ -166,24 +226,38 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
+		private function handleEnterFrameSignal(event : Event) : void
+		{
+			handleMouseMove();
+		}
+		
+		/**
+		 * @private
+		 */
 		private function handleMouseDownSignal(event : MouseEvent) : void
 		{
 			if(_mouseDown)
 			{
+				// TODO : Warn about an invalid sequence here.
+				
 				handleMouseUpSignal(null);
 			}
 			
 			_mouseDown = true;
 			
 			_mousePos.x = (null == event ? _stage.mouseX : event.stageX);
-			_mousePos.y = (null == event ? _stage.mouseX : event.stageX);
+			_mousePos.y = (null == event ? _stage.mouseY : event.stageY);
 			
 			_mouseDownPos.x = _mousePos.x;
 			_mouseDownPos.y = _mousePos.y; 
 			
 			const currentTarget : ISignalTarget = getTarget(_mousePos);
-			
-			trace(currentTarget);
+			if(null != currentTarget)
+			{
+				setFocus(currentTarget);
+				
+				// TODO : Dispatch mouseDownSignal
+			}
 		}
 		
 		/**
@@ -191,7 +265,30 @@ package org.osflash.ui.signals
 		 */
 		private function handleMouseMoveSignal(event : MouseEvent) : void
 		{
+			_mousePos.x = (null == event ? _stage.mouseX : event.stageX);
+			_mousePos.y = (null == event ? _stage.mouseY : event.stageY);
 			
+			handleMouseMove();
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleMouseMove() : void
+		{
+			const currentChild : ISignalTarget = _mouseDown ? _lastTarget : getTarget(_mousePos);
+			_hoverTarget = currentChild;
+
+			//handleHovering(currentChild);
+			//handleDragInOut();
+
+			if (_mouseLastPos.x != _mousePos.x || _mouseLastPos.y != _mousePos.y)
+			{
+				// TODO : dispatch mouseMoveSignal
+
+				_mouseLastPos.x = _mousePos.x;
+				_mouseLastPos.y = _mousePos.y;
+			}
 		}
 		
 		/**
@@ -199,7 +296,24 @@ package org.osflash.ui.signals
 		 */
 		private function handleMouseUpSignal(event : MouseEvent) : void
 		{
+			_mouseDown = false;
 			
+			_mousePos.x = (null == event ? _stage.mouseX : event.stageX);
+			_mousePos.y = (null == event ? _stage.mouseY : event.stageY);
+			
+			_mouseUpPos.x = _mousePos.x;
+			_mouseUpPos.y = _mousePos.y;
+			
+			var currentChild : ISignalTarget = _lastTarget;
+			if(null != currentChild)
+			{
+				// TODO : dispatch mouseUpSignal
+				
+				if(getTarget(_mousePos) == currentChild)
+				{
+					// TODO : dispatch mouseClickSignal
+				}
+			}
 		}
 		
 		/**
