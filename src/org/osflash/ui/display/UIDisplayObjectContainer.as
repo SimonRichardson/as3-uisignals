@@ -1,10 +1,13 @@
 package org.osflash.ui.display
 {
+	import org.osflash.dom.dom_namespace;
 	import org.osflash.dom.element.IDOMNode;
+	import org.osflash.ui.display.base.ISignalDisplay;
+	import org.osflash.ui.signals.ISignalTarget;
 
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.geom.Rectangle;
+	import flash.geom.Point;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
@@ -16,15 +19,6 @@ package org.osflash.ui.display
 		 */
 		private var _displayObjectContainer : DisplayObjectContainer;
 		
-		/**
-		 * @private
-		 */
-		private var _hasScrollRect : Boolean;
-		
-		/**
-		 * @private
-		 */
-		private var _scrollRect : Rectangle;
 		
 		/**
 		 * Construtor for the UIDisplayObject
@@ -39,7 +33,6 @@ package org.osflash.ui.display
 				throw new ArgumentError('Given value must extend DisplayObjectContainer');
 			else
 			{
-				_hasScrollRect = false;
 				_displayObjectContainer = DisplayObjectContainer(displayObject);
 			}
 		}
@@ -86,35 +79,96 @@ package org.osflash.ui.display
 			return domNode;
 		}
 		
+		
+		/**
+		 * @inheritDoc
+		 */
+		override public function captureTarget(point : Point) : ISignalTarget
+		{
+			if(!_displayObjectContainer.visible) return null;
+			
+			if(hasScrollRect)
+			{
+				scrollRect.x = x;
+				scrollRect.y = y;
+				
+				if(null != _displayObjectContainer.parent)
+				{
+					const local : Point = _displayObjectContainer.parent.globalToLocal(point);
+					if(!scrollRect.containsPoint(local))
+						return null;
+				}
+			}
+
+			const elements : Vector.<IDOMNode> = dom_namespace::children;
+			
+			var target : ISignalTarget;
+			var index : int = elements.length;
+			while(--index > -1)
+			{
+				const element : IDOMNode = elements[index];
+				if(element is ISignalTarget)
+				{
+					target = ISignalTarget(element).captureTarget(point);
+					if(null != target) return target;
+				}
+				else if(element is UIDisplayObjectContainer)
+				{
+					const container : UIDisplayObjectContainer = UIDisplayObjectContainer(element);
+					const display : DisplayObjectContainer = container.displayObjectContainer;
+					if(display.visible)
+					{
+						target = captureRecursive(display, point);
+						if(null != target) return target;
+					}
+				}
+			}
+			
+			return hitAreaContainsPoint(point) ? this : null;
+		}
+		
+		/**
+		 * @private
+		 */
+		private function captureRecursive(	container : DisplayObjectContainer, 
+											point : Point
+											) : ISignalTarget
+		{
+
+			var childContainer : DisplayObjectContainer;
+			var target : ISignalTarget;
+
+			var index : int = container.numChildren;
+			while(--index > -1)
+			{
+				const child : DisplayObject = container.getChildAt(index);
+				if(child is ISignalDisplay)
+				{
+					const signal : ISignalDisplay = ISignalDisplay(child);
+					target = signal.target.captureTarget(point);
+					if(null != target) return target;
+				}
+				else if(child is DisplayObjectContainer)
+				{
+					childContainer = DisplayObjectContainer(child);
+
+					if(childContainer.visible)
+					{
+						target = captureRecursive(childContainer, point);
+						if(null != target) return target;
+					}
+				}
+			}
+
+			return null;
+		}
+				
 		/**
 		 * @inheritDoc
 		 */
 		public function get displayObjectContainer() : DisplayObjectContainer
 		{
 			return _displayObjectContainer;
-		}
-		
-		/**
-		 * Get the scrollRect
-		 * @see flash.display.DisplayObjectContainer#scrollRect
-		 */
-		public function get scrollRect() : Rectangle { return _displayObjectContainer.scrollRect; }
-		public function set scrollRect(value : Rectangle) : void
-		{
-			_displayObjectContainer.scrollRect = value;
-			
-			if(null == value)
-				_hasScrollRect = false;
-			else
-			{
-				_hasScrollRect = true;
-				
-				if(null == _scrollRect)
-					_scrollRect = new Rectangle();
-				
-				_scrollRect.width = value.width;
-				_scrollRect.height = value.height;
-			}
 		}
 	}
 }

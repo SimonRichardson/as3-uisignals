@@ -1,6 +1,6 @@
 package org.osflash.ui.display
 {
-	import flash.display.Bitmap;
+	import org.osflash.ui.display.base.SignalBitmap;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
@@ -9,8 +9,7 @@ package org.osflash.ui.display
 
 		public function UIBitmap()
 		{
-			super(new Bitmap());
+			super(new SignalBitmap(this));
 		}
-
 	}
 }

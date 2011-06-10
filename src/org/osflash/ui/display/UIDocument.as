@@ -2,19 +2,30 @@ package org.osflash.ui.display
 {
 	import org.osflash.dom.element.DOMDocument;
 	import org.osflash.dom.element.IDOMNode;
+	import org.osflash.ui.signals.ISignalManager;
+	import org.osflash.ui.signals.ISignalRoot;
+	import org.osflash.ui.signals.ISignalTarget;
+	import org.osflash.ui.signals.SignalManager;
 
 	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
 	import flash.display.Stage;
+	import flash.geom.Point;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
-	public class UIDocument extends DOMDocument
+	public class UIDocument extends DOMDocument implements ISignalRoot
 	{
 		
 		/**
 		 * @private
 		 */
 		private var _stage : Stage;
+		
+		/**
+		 * @private
+		 */
+		private var _signalManager : ISignalManager;
 		
 		public function UIDocument(stage : Stage)
 		{
@@ -24,8 +35,9 @@ package org.osflash.ui.display
 				throw new ArgumentError('Given value can not be null');
 			
 			_stage = stage;
+			_signalManager = new SignalManager(this);
 		}
-
+		
 		/**
 		 * @inheritDoc
 		 */	
@@ -71,6 +83,24 @@ package org.osflash.ui.display
 		/**
 		 * @inheritDoc
 		 */
+		public function captureTarget(point : Point) : ISignalTarget
+		{
+			return null;
+		}
+				
+		/**
+		 * @inheritDoc
+		 */
 		public function get stage() : Stage { return _stage; }
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get displayObjectContainer() : DisplayObjectContainer { return _stage; }
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get signalManager() : ISignalManager { return _signalManager; }
 	}
 }

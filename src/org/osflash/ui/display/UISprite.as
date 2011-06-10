@@ -1,6 +1,6 @@
 package org.osflash.ui.display
 {
-	import flash.display.Sprite;
+	import org.osflash.ui.display.base.SignalSprite;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
@@ -9,9 +9,7 @@ package org.osflash.ui.display
 		
 		public function UISprite()
 		{
-			super(new Sprite());
+			super(new SignalSprite(this));
 		}
-		
-		
 	}
 }
