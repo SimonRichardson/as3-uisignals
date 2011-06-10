@@ -79,7 +79,6 @@ package org.osflash.ui.display
 			return domNode;
 		}
 		
-		
 		/**
 		 * @inheritDoc
 		 */
@@ -101,25 +100,28 @@ package org.osflash.ui.display
 			}
 
 			const elements : Vector.<IDOMNode> = dom_namespace::children;
-			
-			var target : ISignalTarget;
-			var index : int = elements.length;
-			while(--index > -1)
+			if(null != elements)
 			{
-				const element : IDOMNode = elements[index];
-				if(element is ISignalTarget)
+				var target : ISignalTarget;
+				var index : int = elements.length;
+				while(--index > -1)
 				{
-					target = ISignalTarget(element).captureTarget(point);
-					if(null != target) return target;
-				}
-				else if(element is UIDisplayObjectContainer)
-				{
-					const container : UIDisplayObjectContainer = UIDisplayObjectContainer(element);
-					const display : DisplayObjectContainer = container.displayObjectContainer;
-					if(display.visible)
+					const element : IDOMNode = elements[index];
+					if(element is ISignalTarget)
 					{
-						target = captureRecursive(display, point);
+						target = ISignalTarget(element).captureTarget(point);
 						if(null != target) return target;
+					}
+					else if(element is UIDisplayObjectContainer)
+					{
+						const container : UIDisplayObjectContainer = 
+																UIDisplayObjectContainer(element);
+						const display : DisplayObjectContainer = container.displayObjectContainer;
+						if(display.visible)
+						{
+							target = captureRecursive(display, point);
+							if(null != target) return target;
+						}
 					}
 				}
 			}

@@ -115,7 +115,8 @@ package org.osflash.ui.display
 		{
 			super.name = value;
 			
-			_displayObject.name = super.name;
+			if(null != _displayObject)
+				_displayObject.name = super.name;
 		}
 		
 		/**

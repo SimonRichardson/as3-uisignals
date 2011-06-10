@@ -79,8 +79,6 @@ package org.osflash.ui.signals
 		 */
 		private var _nativeMouseUpSignal : ISignal;
 
-		
-		
 		/**
 		 * SignalManager Constructor.
 		 * @param root ISignalRoot need to manage all the different elements.
@@ -97,6 +95,8 @@ package org.osflash.ui.signals
 			
 			_mousePos = new Point();
 			_mouseDownPos = new Point();
+			
+			_frameRate = new SignalManagerFrameRate();
 			
 			_nativeActivateSignal = new NativeSignal(_stage, Event.ACTIVATE);
 			_nativeActivateSignal.add(handleActiveSignal);

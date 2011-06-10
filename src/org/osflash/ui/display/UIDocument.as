@@ -1,7 +1,9 @@
 package org.osflash.ui.display
 {
+	import org.osflash.dom.dom_namespace;
 	import org.osflash.dom.element.DOMDocument;
 	import org.osflash.dom.element.IDOMNode;
+	import org.osflash.ui.display.base.ISignalDisplay;
 	import org.osflash.ui.signals.ISignalManager;
 	import org.osflash.ui.signals.ISignalRoot;
 	import org.osflash.ui.signals.ISignalTarget;
@@ -85,9 +87,73 @@ package org.osflash.ui.display
 		 */
 		public function captureTarget(point : Point) : ISignalTarget
 		{
+			const elements : Vector.<IDOMNode> = dom_namespace::children;
+			
+			if(null == elements)
+			{
+				var target : ISignalTarget;
+				var index : int = elements.length;
+				while(--index > -1)
+				{
+					const element : IDOMNode = elements[index];
+					if(element is ISignalTarget)
+					{
+						target = ISignalTarget(element).captureTarget(point);
+						if(null != target) return target;
+					}
+					else if(element is UIDisplayObjectContainer)
+					{
+						const container : UIDisplayObjectContainer = 
+																UIDisplayObjectContainer(element);
+						const display : DisplayObjectContainer = container.displayObjectContainer;
+						if(display.visible)
+						{
+							target = captureRecursive(display, point);
+							if(null != target) return target;
+						}
+					}
+				}
+			}
+			
+			return this;
+		}
+		
+		/**
+		 * @private
+		 */
+		private function captureRecursive(	container : DisplayObjectContainer, 
+											point : Point
+											) : ISignalTarget
+		{
+
+			var childContainer : DisplayObjectContainer;
+			var target : ISignalTarget;
+
+			var index : int = container.numChildren;
+			while(--index > -1)
+			{
+				const child : DisplayObject = container.getChildAt(index);
+				if(child is ISignalDisplay)
+				{
+					const signal : ISignalDisplay = ISignalDisplay(child);
+					target = signal.target.captureTarget(point);
+					if(null != target) return target;
+				}
+				else if(child is DisplayObjectContainer)
+				{
+					childContainer = DisplayObjectContainer(child);
+
+					if(childContainer.visible)
+					{
+						target = captureRecursive(childContainer, point);
+						if(null != target) return target;
+					}
+				}
+			}
+
 			return null;
 		}
-				
+						
 		/**
 		 * @inheritDoc
 		 */
