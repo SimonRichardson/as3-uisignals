@@ -58,7 +58,8 @@ package org.osflash.ui.display
 				if(null == displayObject)
 					throw new ArgumentError('UIDisplayObject displayObject can not be null');
 				
-				_displayObjectContainer.addChild(uiDisplayObject.displayObject);
+				if(!_displayObjectContainer.contains(displayObject))
+					_displayObjectContainer.addChild(displayObject);
 			}
 			
 			return domNode;
@@ -78,7 +79,8 @@ package org.osflash.ui.display
 				if(null == displayObject)
 					throw new ArgumentError('UIDisplayObject displayObject can not be null');
 				
-				_displayObjectContainer.removeChild(uiDisplayObject.displayObject);
+				if(_displayObjectContainer.contains(displayObject))
+					_displayObjectContainer.removeChild(displayObject);
 			}
 			
 			return domNode;
