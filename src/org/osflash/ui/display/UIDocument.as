@@ -3,7 +3,8 @@ package org.osflash.ui.display
 	import org.osflash.dom.dom_namespace;
 	import org.osflash.dom.element.DOMDocument;
 	import org.osflash.dom.element.IDOMNode;
-	import org.osflash.ui.display.base.ISignalDisplay;
+	import org.osflash.ui.display.grid.ISpatialGrid;
+	import org.osflash.ui.display.grid.QuadTree;
 	import org.osflash.ui.signals.ISignalManager;
 	import org.osflash.ui.signals.ISignalRoot;
 	import org.osflash.ui.signals.ISignalTarget;
@@ -11,6 +12,7 @@ package org.osflash.ui.display
 
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.Sprite;
 	import flash.display.Stage;
 	import flash.geom.Point;
 	/**
@@ -27,9 +29,19 @@ package org.osflash.ui.display
 		/**
 		 * @private
 		 */
+		private var _container : Sprite;
+		
+		/**
+		 * @private
+		 */
 		private var _signalManager : ISignalManager;
 		
-		public function UIDocument(stage : Stage)
+		/**
+		 * @private
+		 */
+		private var _grid : ISpatialGrid;
+				
+		public function UIDocument(stage : Stage, useGrid : Boolean = true)
 		{
 			super();
 			
@@ -37,7 +49,13 @@ package org.osflash.ui.display
 				throw new ArgumentError('Given value can not be null');
 			
 			_stage = stage;
+			
+			_container = new Sprite();
+			_stage.addChild(_container);
+			
 			_signalManager = new SignalManager(this);
+			
+			if(useGrid)	_grid = new QuadTree(stage.stageWidth, stage.stageHeight);
 		}
 		
 		/**
@@ -54,8 +72,10 @@ package org.osflash.ui.display
 				if(null == displayObject)
 					throw new ArgumentError('UIDisplayObject displayObject can not be null');
 				
-				if(!_stage.contains(displayObject))
-					_stage.addChild(displayObject);
+				if(!_container.contains(displayObject))
+					_container.addChild(displayObject);
+				
+				if(null != _grid) _grid.add(uiDisplayObject);
 			}
 			
 			return domNode;
@@ -75,8 +95,10 @@ package org.osflash.ui.display
 				if(null == displayObject)
 					throw new ArgumentError('UIDisplayObject displayObject can not be null');
 				
-				if(_stage.contains(displayObject))
-					_stage.removeChild(displayObject);
+				if(_container.contains(displayObject))
+					_container.removeChild(displayObject);
+				
+				if(null != _grid) _grid.remove(uiDisplayObject);
 			}
 			
 			return domNode;
@@ -87,27 +109,37 @@ package org.osflash.ui.display
 		 */
 		public function captureTarget(point : Point) : ISignalTarget
 		{
-			const elements : Vector.<IDOMNode> = dom_namespace::children;
-			if(null != elements)
+			var index : int;
+			var target : ISignalTarget;
+			
+			if(null != _grid)
 			{
-				var target : ISignalTarget;
-				var index : int = elements.length;
-				while(--index > -1)
+				// Implement a very simple static grid algorithm here!
+				_grid.integrate();
+				const targets : Vector.<ISignalTarget> = _grid.getItemsUnderPoint(point);
+				if(null != targets)
 				{
-					const element : IDOMNode = elements[index];
-					if(element is ISignalTarget)
+					index = targets.length;
+					while(--index > -1)
 					{
-						target = ISignalTarget(element).captureTarget(point);
+						const signalTarget : ISignalTarget = targets[index];
+						target = signalTarget.captureTarget(point);
 						if(null != target) return target;
-					}
-					else if(element is UIDisplayObjectContainer)
+					}			
+				}
+			}
+			else
+			{
+				const elements : Vector.<IDOMNode> = dom_namespace::children;
+				if(null != elements)
+				{
+					index = elements.length;
+					while(--index > -1)
 					{
-						const container : UIDisplayObjectContainer = 
-																UIDisplayObjectContainer(element);
-						const display : DisplayObjectContainer = container.displayObjectContainer;
-						if(display.visible)
+						const element : IDOMNode = elements[index];
+						if(element is ISignalTarget)
 						{
-							target = captureRecursive(display, point);
+							target = ISignalTarget(element).captureTarget(point);
 							if(null != target) return target;
 						}
 					}
@@ -116,43 +148,7 @@ package org.osflash.ui.display
 			
 			return this;
 		}
-		
-		/**
-		 * @private
-		 */
-		private function captureRecursive(	container : DisplayObjectContainer, 
-											point : Point
-											) : ISignalTarget
-		{
-
-			var childContainer : DisplayObjectContainer;
-			var target : ISignalTarget;
-
-			var index : int = container.numChildren;
-			while(--index > -1)
-			{
-				const child : DisplayObject = container.getChildAt(index);
-				if(child is ISignalDisplay)
-				{
-					const signal : ISignalDisplay = ISignalDisplay(child);
-					target = signal.target.captureTarget(point);
-					if(null != target) return target;
-				}
-				else if(child is DisplayObjectContainer)
-				{
-					childContainer = DisplayObjectContainer(child);
-
-					if(childContainer.visible)
-					{
-						target = captureRecursive(childContainer, point);
-						if(null != target) return target;
-					}
-				}
-			}
-
-			return null;
-		}
-						
+								
 		/**
 		 * @inheritDoc
 		 */
@@ -161,7 +157,7 @@ package org.osflash.ui.display
 		/**
 		 * @inheritDoc
 		 */
-		public function get displayObjectContainer() : DisplayObjectContainer { return _stage; }
+		public function get displayObjectContainer() : DisplayObjectContainer { return _container; }
 		
 		/**
 		 * @inheritDoc

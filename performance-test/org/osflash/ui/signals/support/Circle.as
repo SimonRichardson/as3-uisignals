@@ -34,7 +34,7 @@ package org.osflash.ui.signals.support
 			
 			graphics.beginFill(_colour, 0.2);
 			graphics.lineStyle(1, 0x0099ff, 0.2);
-			graphics.drawCircle(0, 0, _radius);
+			graphics.drawCircle(_radius, _radius, _radius);
 			graphics.endFill();
 		}
 		
@@ -44,7 +44,7 @@ package org.osflash.ui.signals.support
 		override public function captureTarget(point : Point) : ISignalTarget
 		{
 			if(!displayObject.visible) return null;
-			
+						
 			const local : Point = displayObject.globalToLocal(point);
 			const dx : Number = local.x - _position.x;
 			const dy : Number = local.y - _position.y;
@@ -53,7 +53,7 @@ package org.osflash.ui.signals.support
 			graphics.clear();
 			graphics.beginFill(_colour, 0.2);
 			graphics.lineStyle(1, 0x0000ff, 0.2);
-			graphics.drawCircle(0, 0, _radius);
+			graphics.drawCircle(_radius, _radius, _radius);
 			graphics.endFill();
 			
 			const inside : Boolean = (distance <= _radius);
@@ -79,8 +79,8 @@ package org.osflash.ui.signals.support
 		{
 			super.x = value;
 			
-			_position.x = x;
-			_position.y = y;
+			_position.x = x + _radius;
+			_position.y = y + _radius;
 			
 			_position = displayObject.globalToLocal(_position);
 		}
@@ -92,8 +92,8 @@ package org.osflash.ui.signals.support
 		{
 			super.y = value;
 			
-			_position.x = x;
-			_position.y = y;
+			_position.x = x + _radius;
+			_position.y = y + _radius;
 			
 			_position = displayObject.globalToLocal(_position);
 		}

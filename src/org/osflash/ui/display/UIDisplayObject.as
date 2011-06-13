@@ -28,6 +28,11 @@ package org.osflash.ui.display
 		private var _scrollRect : Rectangle;
 		
 		/**
+		 * @private
+		 */
+		private var _bounds : Rectangle;
+		
+		/**
 		 * Construtor for the UIDisplayObject
 		 * 
 		 * @param displayObject DisplayObject to encapsulate
@@ -37,6 +42,12 @@ package org.osflash.ui.display
 			super(displayObject.name);
 			
 			_displayObject = displayObject;
+			
+			_bounds = new Rectangle(	displayObject.x, 
+										displayObject.y, 
+										displayObject.width, 
+										displayObject.height
+										);
 			
 			if(null != _displayObject.scrollRect) scrollRect = _displayObject.scrollRect;
 		}
@@ -62,7 +73,7 @@ package org.osflash.ui.display
 			
 			return hitAreaContainsPoint(point) ? this : null;
 		}
-		
+				
 		/**
 		 * Tests whether or not the given point is in the hitarea of the current
 		 * object.
@@ -107,6 +118,29 @@ package org.osflash.ui.display
 		 */
 		public function get height() : int { return _displayObject.height; }
 		public function set height(value : int) : void { _displayObject.height = value; }
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get bounds() : Rectangle 
+		{ 
+			if(_hasScrollRect)
+			{
+				_bounds.x = _scrollRect.x;
+				_bounds.y = _scrollRect.y;
+				_bounds.width = _scrollRect.width;
+				_bounds.height = _scrollRect.height;
+			}
+			else
+			{
+				_bounds.x = _displayObject.x;
+				_bounds.y = _displayObject.y;
+				_bounds.width = _displayObject.width;
+				_bounds.height = _displayObject.height;
+			}
+			
+			return _bounds; 
+		}
 		
 		/**
 		 * @inheritDoc

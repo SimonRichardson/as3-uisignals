@@ -24,8 +24,8 @@ package org.osflash.ui.signals
 				const radius : int = circle.radius;
 				const diameter : int = radius * 2;
 				
-				circle.x = (Math.random() * (800 - diameter)) + radius;
-				circle.y = (Math.random() * (800 - diameter)) + radius;
+				circle.x = (Math.random() * (800 - diameter));
+				circle.y = (Math.random() * (800 - diameter));
 				
 				document.add(circle);
 			}
