@@ -27,7 +27,7 @@ package org.osflash.ui.display.grid
 		/**
 		 * @private
 		 */
-		private var _maxLevels : int = 3;
+		private var _maxLevels : int = 4;
 		
 		public function QuadTree(width : int, height : int)
 		{

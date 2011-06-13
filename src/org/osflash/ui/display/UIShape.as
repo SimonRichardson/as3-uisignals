@@ -1,7 +1,8 @@
 package org.osflash.ui.display
 {
+	import org.osflash.ui.display.base.SignalShape;
+
 	import flash.display.Graphics;
-	import flash.display.Shape;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
@@ -15,7 +16,7 @@ package org.osflash.ui.display
 		
 		public function UIShape()
 		{
-			const shape : Shape = new Shape();
+			const shape : SignalShape = new SignalShape(this);
 			_graphics = shape.graphics;
 			
 			super(shape);

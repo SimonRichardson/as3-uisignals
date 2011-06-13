@@ -1,6 +1,6 @@
 package org.osflash.ui.display
 {
-	import flash.display.MovieClip;
+	import org.osflash.ui.display.base.SignalMovieClip;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
@@ -9,7 +9,7 @@ package org.osflash.ui.display
 
 		public function UIMovieClip()
 		{
-			super(new MovieClip());
+			super(new SignalMovieClip(this));
 		}
 
 	}

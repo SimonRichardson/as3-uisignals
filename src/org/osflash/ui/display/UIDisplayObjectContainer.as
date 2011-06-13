@@ -18,7 +18,6 @@ package org.osflash.ui.display
 		 */
 		private var _displayObjectContainer : DisplayObjectContainer;
 		
-		
 		/**
 		 * Construtor for the UIDisplayObject
 		 * 

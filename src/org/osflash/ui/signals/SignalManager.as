@@ -1,12 +1,12 @@
 package org.osflash.ui.signals
 {
-	import flash.events.KeyboardEvent;
 	import org.osflash.signals.ISignal;
 	import org.osflash.signals.natives.NativeSignal;
 	import org.osflash.ui.utils.SignalManagerFrameRate;
 
 	import flash.display.Stage;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.geom.Point;
@@ -170,6 +170,11 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
+		private var _nativeMouseWheelSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
 		private var _nativeRepeatThresholdSignal : ISignal;
 		
 		/**
@@ -224,6 +229,7 @@ package org.osflash.ui.signals
 			_nativeMouseMoveSignal = new NativeSignal(_stage, MouseEvent.MOUSE_MOVE, MouseEvent);
 			_nativeMouseUpSignal = new NativeSignal(_stage, MouseEvent.MOUSE_UP, MouseEvent);
 			_nativeMouseLeaveSignal = new NativeSignal(_stage, Event.MOUSE_LEAVE);
+			_nativeMouseWheelSignal = new NativeSignal(_stage, MouseEvent.MOUSE_WHEEL, MouseEvent);
 			
 			_nativeKeyDownSignal = new NativeSignal(_stage, KeyboardEvent.KEY_DOWN, KeyboardEvent);
 			_nativeKeyUpSignal = new NativeSignal(_stage, KeyboardEvent.KEY_UP, KeyboardEvent);
@@ -319,11 +325,13 @@ package org.osflash.ui.signals
 			_stage.frameRate = _frameRate.max;
 			
 			_nativeDeactivateSignal.add(handleDeactivateSignal);
+			
 			_nativeEnterFrameSignal.add(handleEnterFrameSignal);
 			_nativeMouseDownSignal.add(handleMouseDownSignal);
 			_nativeMouseMoveSignal.add(handleMouseMoveSignal);
 			_nativeMouseUpSignal.add(handleMouseUpSignal);
 			_nativeMouseLeaveSignal.add(handleMouseLeaveSignal);
+			_nativeMouseWheelSignal.add(handleMouseWheelSignal);
 			
 			_nativeKeyDownSignal.add(handleKeyDownSignal);
 			_nativeKeyUpSignal.add(handleKeyUpSignal);
@@ -346,6 +354,7 @@ package org.osflash.ui.signals
 			_nativeMouseMoveSignal.remove(handleMouseMoveSignal);
 			_nativeMouseUpSignal.remove(handleMouseUpSignal);
 			_nativeMouseLeaveSignal.remove(handleMouseLeaveSignal);
+			_nativeMouseWheelSignal.remove(handleMouseWheelSignal);
 			
 			_nativeKeyDownSignal.remove(handleKeyDownSignal);
 			_nativeKeyUpSignal.remove(handleKeyUpSignal);
@@ -477,6 +486,14 @@ package org.osflash.ui.signals
 		private function handleMouseLeaveSignal(event : Event) : void
 		{
 			if(_mouseDown) handleMouseUpSignal(null);
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleMouseWheelSignal(event : MouseEvent) : void
+		{
+			// TODO : dispatch mouseWheelSignal
 		}
 		
 		/**
@@ -635,7 +652,7 @@ package org.osflash.ui.signals
 				}
 			}
 			
-			var index : int = _hoverTargetIndexs.length;
+			var index : int = _dragTargetIndexs.length;
 			while(--index > -1)
 			{
 				const id : int = _dragTargetIndexs[index];

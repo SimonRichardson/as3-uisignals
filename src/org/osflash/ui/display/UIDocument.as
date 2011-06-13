@@ -12,7 +12,6 @@ package org.osflash.ui.display
 
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.Sprite;
 	import flash.display.Stage;
 	import flash.geom.Point;
 	/**
@@ -29,7 +28,7 @@ package org.osflash.ui.display
 		/**
 		 * @private
 		 */
-		private var _container : Sprite;
+		private var _container : UISprite;
 		
 		/**
 		 * @private
@@ -50,8 +49,8 @@ package org.osflash.ui.display
 			
 			_stage = stage;
 			
-			_container = new Sprite();
-			_stage.addChild(_container);
+			_container = new UISprite();
+			_stage.addChild(_container.displayObject);
 			
 			_signalManager = new SignalManager(this);
 			
@@ -72,8 +71,8 @@ package org.osflash.ui.display
 				if(null == displayObject)
 					throw new ArgumentError('UIDisplayObject displayObject can not be null');
 				
-				if(!_container.contains(displayObject))
-					_container.addChild(displayObject);
+				if(!_container.displayObjectContainer.contains(displayObject))
+					_container.displayObjectContainer.addChild(displayObject);
 				
 				if(null != _grid) _grid.add(uiDisplayObject);
 			}
@@ -95,8 +94,8 @@ package org.osflash.ui.display
 				if(null == displayObject)
 					throw new ArgumentError('UIDisplayObject displayObject can not be null');
 				
-				if(_container.contains(displayObject))
-					_container.removeChild(displayObject);
+				if(_container.displayObjectContainer.contains(displayObject))
+					_container.displayObjectContainer.removeChild(displayObject);
 				
 				if(null != _grid) _grid.remove(uiDisplayObject);
 			}
@@ -158,7 +157,10 @@ package org.osflash.ui.display
 		/**
 		 * @inheritDoc
 		 */
-		public function get displayObjectContainer() : DisplayObjectContainer { return _container; }
+		public function get displayObjectContainer() : DisplayObjectContainer 
+		{ 
+			return _container.displayObjectContainer; 
+		}
 		
 		/**
 		 * @inheritDoc

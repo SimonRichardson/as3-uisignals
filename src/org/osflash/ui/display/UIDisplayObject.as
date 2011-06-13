@@ -1,9 +1,15 @@
 package org.osflash.ui.display
 {
 	import org.osflash.dom.element.DOMNode;
+	import org.osflash.signals.ISignal;
+	import org.osflash.signals.natives.NativeSignal;
+	import org.osflash.ui.display.base.ISignalDisplay;
 	import org.osflash.ui.signals.ISignalTarget;
 
 	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
+	import flash.display.Stage;
+	import flash.events.Event;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	/**
@@ -33,6 +39,32 @@ package org.osflash.ui.display
 		private var _bounds : Rectangle;
 		
 		/**
+		 * @private
+		 */
+		private var _signalParent : ISignalTarget;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeAddedSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeAddedToStageSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeRemovedSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeRemovedFromStageSignal : ISignal;
+		
+		
+		/**
 		 * Construtor for the UIDisplayObject
 		 * 
 		 * @param displayObject DisplayObject to encapsulate
@@ -40,6 +72,10 @@ package org.osflash.ui.display
 		public function UIDisplayObject(displayObject : DisplayObject)
 		{
 			super(displayObject.name);
+			
+			if(null == displayObject) throw new ArgumentError('Given value can not be null');
+			if(!(displayObject is ISignalDisplay)) throw new ArgumentError('Given value must ' +
+															'implement ISignalDisplay');
 			
 			_displayObject = displayObject;
 			
@@ -50,6 +86,19 @@ package org.osflash.ui.display
 										);
 			
 			if(null != _displayObject.scrollRect) scrollRect = _displayObject.scrollRect;
+			
+			_nativeAddedSignal = new NativeSignal(_displayObject, Event.ADDED);
+			_nativeAddedToStageSignal = new NativeSignal(_displayObject, Event.ADDED_TO_STAGE);
+			_nativeRemovedSignal = new NativeSignal(_displayObject, Event.REMOVED);
+			_nativeRemovedFromStageSignal = new NativeSignal(	_displayObject, 
+																Event.REMOVED_FROM_STAGE
+																);
+																
+			_nativeAddedSignal.add(handleAddedSignal);
+			_nativeAddedToStageSignal.add(handleAddedSignal);
+			
+			_nativeRemovedSignal.add(handleRemovedSignal);
+			_nativeRemovedFromStageSignal.add(handleRemovedSignal);
 		}
 		
 		/**
@@ -86,6 +135,45 @@ package org.osflash.ui.display
 			if(null == _displayObject.stage) return false;
 			else return _displayObject.getRect(_displayObject.stage).containsPoint(point);
 		}
+		
+		/**
+		 * @private
+		 */
+		private function handleAddedSignal(event : Event) : void
+		{
+			event.stopPropagation();
+			
+			if(event.target != _displayObject) return;
+			
+			var possibleParent : DisplayObjectContainer = _displayObject.parent;
+			if(possibleParent is Stage) return;
+			
+			while(null != possibleParent && !(possibleParent is ISignalDisplay))
+			{
+				possibleParent = possibleParent.parent;
+			}
+			
+			if(null == possibleParent)
+			{
+				_signalParent = null;
+				
+				if(event.type == Event.ADDED_TO_STAGE) handleBrokenTarget(this, _displayObject);
+			}
+			else _signalParent = ISignalDisplay(possibleParent).target;
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleRemovedSignal(event : Event) : void
+		{
+			event.stopPropagation();
+			
+			if(event.target != _displayObject) return;
+			
+			_signalParent = null;
+		}
+		
 		
 		/**
 		 * @inheritDoc
@@ -185,7 +273,7 @@ package org.osflash.ui.display
 		/**
 		 * @private
 		 */
-		public function get signalParent() : ISignalTarget { return null; }
+		public function get signalParent() : ISignalTarget { return _signalParent; }
 		
 		/**
 		 * @private
