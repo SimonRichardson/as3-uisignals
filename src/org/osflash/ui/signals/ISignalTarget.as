@@ -15,5 +15,9 @@ package org.osflash.ui.signals
 		 * @return The ISignalTarget under that point.
 		 */
 		function captureTarget(point : Point) : ISignalTarget;
+		
+		function get signalParent() : ISignalTarget;
+		
+		function get signalFlags() : int;
 	}
 }

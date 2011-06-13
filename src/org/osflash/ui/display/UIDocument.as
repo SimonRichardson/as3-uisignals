@@ -164,5 +164,15 @@ package org.osflash.ui.display
 		 * @inheritDoc
 		 */
 		public function get signalManager() : ISignalManager { return _signalManager; }
+		
+		/**
+		 * @private
+		 */
+		public function get signalParent() : ISignalTarget { return null; }
+		
+		/**
+		 * @private
+		 */
+		public function get signalFlags() : int { return 0; }
 	}
 }

@@ -7,6 +7,8 @@ package org.osflash.ui.signals
 	public interface ISignalManager
 	{
 		
+		function stealCapture(target : ISignalTarget) : void;
+		
 		function reset() : void;
 		
 		function get focus() : ISignalTarget;

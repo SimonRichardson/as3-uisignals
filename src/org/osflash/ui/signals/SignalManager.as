@@ -1,5 +1,6 @@
 package org.osflash.ui.signals
 {
+	import flash.events.KeyboardEvent;
 	import org.osflash.signals.ISignal;
 	import org.osflash.signals.natives.NativeSignal;
 	import org.osflash.ui.utils.SignalManagerFrameRate;
@@ -7,13 +8,19 @@ package org.osflash.ui.signals
 	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import flash.text.TextField;
+	import flash.utils.Timer;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
 	public final class SignalManager implements ISignalManager
 	{
+		
+		private const REPEAT_THRESHOLD : int = 500;
+
+		private const REPEAT_TIMEOUT : int = 125;
 		
 		/**
 		 * @private
@@ -78,6 +85,56 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
+		private var _hoverTargets : Vector.<ISignalTarget>;
+		
+		/**
+		 * @private
+		 */
+		private var _hoverTargetIndexs : Vector.<int>;
+		
+		/**
+		 * @private
+		 */
+		private var _dragTargets : Vector.<ISignalTarget>;
+		
+		/**
+		 * @private
+		 */
+		private var _dragTargetIndexs : Vector.<int>;
+		
+		/**
+		 * @private
+		 */
+		private var _repeatThreshold : Timer;
+		
+		/**
+		 * @private
+		 */
+		private var _repeatTimeout : Timer;
+		
+		/**
+		 * @private
+		 */
+		private var _repeatCount : int;
+		
+		/**
+		 * @private
+		 */
+		private var _keyTable : Vector.<Boolean>;
+		
+		/**
+		 * @private
+		 */
+		private var _keyDown : Boolean;
+		
+		/**
+		 * @private
+		 */
+		private var _keyDownSpace : Boolean;
+		
+		/**
+		 * @private
+		 */
 		private var _nativeActivateSignal : ISignal;
 		
 		/**
@@ -104,6 +161,31 @@ package org.osflash.ui.signals
 		 * @private
 		 */
 		private var _nativeMouseUpSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeMouseLeaveSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeRepeatThresholdSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeRepeatTimeoutSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeKeyDownSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeKeyUpSignal : ISignal;
 
 		/**
 		 * SignalManager Constructor.
@@ -124,6 +206,12 @@ package org.osflash.ui.signals
 			_mouseLastPos = new Point();
 			_mouseDownPos = new Point();
 			
+			_hoverTargets = new Vector.<ISignalTarget>();
+			_hoverTargetIndexs = new Vector.<int>();
+			
+			_dragTargets = new Vector.<ISignalTarget>();
+			_dragTargetIndexs = new Vector.<int>();
+			
 			_frameRate = new SignalManagerFrameRate();
 			
 			_nativeActivateSignal = new NativeSignal(_stage, Event.ACTIVATE);
@@ -135,6 +223,34 @@ package org.osflash.ui.signals
 			_nativeMouseDownSignal = new NativeSignal(_stage, MouseEvent.MOUSE_DOWN, MouseEvent);
 			_nativeMouseMoveSignal = new NativeSignal(_stage, MouseEvent.MOUSE_MOVE, MouseEvent);
 			_nativeMouseUpSignal = new NativeSignal(_stage, MouseEvent.MOUSE_UP, MouseEvent);
+			_nativeMouseLeaveSignal = new NativeSignal(_stage, Event.MOUSE_LEAVE);
+			
+			_nativeKeyDownSignal = new NativeSignal(_stage, KeyboardEvent.KEY_DOWN, KeyboardEvent);
+			_nativeKeyUpSignal = new NativeSignal(_stage, KeyboardEvent.KEY_UP, KeyboardEvent);
+			
+			_repeatCount = 0;
+			
+			_repeatThreshold = new Timer(REPEAT_THRESHOLD, 1);
+			_nativeRepeatThresholdSignal = new NativeSignal(_repeatThreshold, TimerEvent.TIMER);
+			
+			_repeatTimeout = new Timer(REPEAT_TIMEOUT, 0);
+			_nativeRepeatTimeoutSignal = new NativeSignal(_repeatThreshold, TimerEvent.TIMER);
+			
+			_keyTable = new Vector.<Boolean>();
+			for (var i : int = 0;i < 0x100; i++)
+			{
+				_keyTable[i] = false;
+			}
+			_keyDown = false;
+			_keyDownSpace = false;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function stealCapture(target : ISignalTarget) : void
+		{
+			_lastTarget = target;
 		}
 		
 		/**
@@ -207,6 +323,13 @@ package org.osflash.ui.signals
 			_nativeMouseDownSignal.add(handleMouseDownSignal);
 			_nativeMouseMoveSignal.add(handleMouseMoveSignal);
 			_nativeMouseUpSignal.add(handleMouseUpSignal);
+			_nativeMouseLeaveSignal.add(handleMouseLeaveSignal);
+			
+			_nativeKeyDownSignal.add(handleKeyDownSignal);
+			_nativeKeyUpSignal.add(handleKeyUpSignal);
+			
+			_nativeRepeatThresholdSignal.add(handleRepeatThresholdSignal);
+			_nativeRepeatTimeoutSignal.add(handleRepeatTimeoutSignal);
 		}
 		
 		/**
@@ -218,9 +341,20 @@ package org.osflash.ui.signals
 			
 			_stage.frameRate = _frameRate.min;
 			
+			_nativeEnterFrameSignal.remove(handleEnterFrameSignal);
 			_nativeMouseDownSignal.remove(handleMouseDownSignal);
 			_nativeMouseMoveSignal.remove(handleMouseMoveSignal);
 			_nativeMouseUpSignal.remove(handleMouseUpSignal);
+			_nativeMouseLeaveSignal.remove(handleMouseLeaveSignal);
+			
+			_nativeKeyDownSignal.remove(handleKeyDownSignal);
+			_nativeKeyUpSignal.remove(handleKeyUpSignal);
+			
+			_nativeRepeatThresholdSignal.remove(handleRepeatThresholdSignal);
+			_nativeRepeatTimeoutSignal.remove(handleRepeatTimeoutSignal);
+			
+			if(_mouseDown) handleMouseUpSignal(null);
+			if(_keyDown) handleKeyDownSignal(null);
 		}
 		
 		/**
@@ -257,7 +391,17 @@ package org.osflash.ui.signals
 				setFocus(currentTarget);
 				
 				// TODO : Dispatch mouseDownSignal
+				
+				if((currentTarget.signalFlags & SignalFlags.REPEAT_MOUSE_DOWN) != 0)
+				{
+					_repeatThreshold.reset();
+					_repeatThreshold.start();
+				}
 			}
+			
+			_lastTarget = currentTarget;
+			
+			// TODO : log out a target here!
 		}
 		
 		/**
@@ -276,11 +420,11 @@ package org.osflash.ui.signals
 		 */
 		private function handleMouseMove() : void
 		{
-			const currentChild : ISignalTarget = _mouseDown ? _lastTarget : getTarget(_mousePos);
-			_hoverTarget = currentChild;
+			const currentTarget : ISignalTarget = _mouseDown ? _lastTarget : getTarget(_mousePos);
+			_hoverTarget = currentTarget;
 
-			//handleHovering(currentChild);
-			//handleDragInOut();
+			handleHovering(currentTarget);
+			handleDragInOut();
 
 			if (_mouseLastPos.x != _mousePos.x || _mouseLastPos.y != _mousePos.y)
 			{
@@ -296,6 +440,9 @@ package org.osflash.ui.signals
 		 */
 		private function handleMouseUpSignal(event : MouseEvent) : void
 		{
+			if(_repeatThreshold.running) _repeatThreshold.reset();
+			if(_repeatTimeout.running) _repeatTimeout.reset();
+			
 			_mouseDown = false;
 			
 			_mousePos.x = (null == event ? _stage.mouseX : event.stageX);
@@ -304,15 +451,196 @@ package org.osflash.ui.signals
 			_mouseUpPos.x = _mousePos.x;
 			_mouseUpPos.y = _mousePos.y;
 			
-			var currentChild : ISignalTarget = _lastTarget;
-			if(null != currentChild)
+			const total : int = _dragTargets.length;
+			for(var i : int = 0; i < total; i++)
+			{
+				const target : ISignalTarget = _dragTargets[i];
+				
+				// TODO : disptch mouseDragOutSignal
+			}
+			
+			const currentTarget : ISignalTarget = _lastTarget;
+			if(null != currentTarget)
 			{
 				// TODO : dispatch mouseUpSignal
 				
-				if(getTarget(_mousePos) == currentChild)
+				if(getTarget(_mousePos) == currentTarget)
 				{
 					// TODO : dispatch mouseClickSignal
 				}
+			}
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleMouseLeaveSignal(event : Event) : void
+		{
+			if(_mouseDown) handleMouseUpSignal(null);
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleRepeatThresholdSignal(event : Event) : void
+		{
+			_repeatCount = 0;
+			
+			_repeatTimeout.delay = REPEAT_TIMEOUT;
+			
+			_repeatTimeout.reset();
+			_repeatTimeout.start();
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleRepeatTimeoutSignal(event : Event) : void
+		{
+			if(null == _lastTarget)
+			{
+				_repeatTimeout.reset();
+				return;
+			}
+			
+			_repeatCount++;
+			
+			if(0x10 == _repeatCount) _repeatTimeout.delay *= 0.5;
+			if(0x20 == _repeatCount) _repeatTimeout.delay *= 0.5;
+		
+			// TODO : dispatch mouseDownSignal
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleKeyDownSignal(event : KeyboardEvent) : void
+		{
+			if(null == event) event = new KeyboardEvent(KeyboardEvent.KEY_UP);
+			
+			_keyTable[int(event.keyCode & 0xff)] = true;
+			
+			_keyDown = true;
+			_keyDownSpace = 0x20 == event.keyCode;
+			
+			// TODO : dispatch keyDownSignal
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleKeyUpSignal(event : KeyboardEvent) : void
+		{
+			_keyTable[int(event.keyCode & 0xff)] = false;
+			
+			_keyDown = false;
+			_keyDownSpace = false;
+			
+			// TODO : dispatch keyUpSignal
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleHovering(currentTarget : ISignalTarget) : void
+		{
+			if(_mouseDown) return;
+			
+			var exists : Boolean = false;
+			
+			const total : int = _hoverTargets.length;
+			for(var i : int = 0; i<total; i++)
+			{
+				const target : ISignalTarget = _hoverTargets[i];
+				if(currentTarget != target)
+				{
+					var activeTarget : ISignalTarget = currentTarget;
+					while(activeTarget != target)
+					{
+						if(null == activeTarget)
+						{
+							_hoverTargetIndexs.push(i);
+							
+							// TODO : dispatch mouseOutSignal
+							
+							break;
+						}
+						
+						activeTarget = activeTarget.signalParent;
+					}
+				}
+				else exists = true;
+			}
+			
+			if(!exists && null != currentTarget)
+			{
+				_hoverTargets.push(currentTarget);
+				
+				// TODO : dispatch mouseInSignal
+			}
+			
+			var index : int = _hoverTargetIndexs.length;
+			while(--index > -1)
+			{
+				const id : int = _hoverTargetIndexs[index];
+				if(id < 0 || id >= _hoverTargets.length) continue;
+				_hoverTargets.splice(id, 1);
+			}
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleDragInOut() : void
+		{
+			if(!_mouseDown) return;
+			
+			const currentTarget : ISignalTarget = getTarget(_mousePos);
+			
+			var exists : Boolean = false;
+			
+			const total : int = _dragTargets.length;
+			for(var i : int = 0; i<total; i++)
+			{
+				const target : ISignalTarget = _dragTargets[i];
+				if(currentTarget != target)
+				{
+					var activeTarget : ISignalTarget = currentTarget;
+					while(activeTarget != target)
+					{
+						if(null == activeTarget)
+						{
+							_dragTargetIndexs.push(i);
+							// TODO : dispatch mouseDragOutSignal
+							
+							break;
+						}
+						
+						activeTarget = activeTarget.signalParent;
+					}
+				}
+				else exists = true;
+			}
+			
+			
+			if(!exists && null != currentTarget)
+			{
+				_dragTargets.push(currentTarget);
+				
+				if((currentTarget.signalFlags & SignalFlags.RECEIVE_DRAG_EVENTS) != 0)
+				{
+					_dragTargets.push(currentTarget);
+					
+					// TODO : Dispatch mouseDragIn
+				}
+			}
+			
+			var index : int = _hoverTargetIndexs.length;
+			while(--index > -1)
+			{
+				const id : int = _dragTargetIndexs[index];
+				if(id < 0 || id >= _dragTargets.length) continue;
+				_dragTargets.splice(id, 1);
 			}
 		}
 		

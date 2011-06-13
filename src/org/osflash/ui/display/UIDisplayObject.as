@@ -124,6 +124,7 @@ package org.osflash.ui.display
 		 */
 		public function get bounds() : Rectangle 
 		{ 
+			// TODO : optimise this!
 			if(_hasScrollRect)
 			{
 				_bounds.x = _scrollRect.x;
@@ -180,5 +181,15 @@ package org.osflash.ui.display
 				_scrollRect.height = value.height;
 			}
 		}
+		
+		/**
+		 * @private
+		 */
+		public function get signalParent() : ISignalTarget { return null; }
+		
+		/**
+		 * @private
+		 */
+		public function get signalFlags() : int { return 0; }
 	}
 }
