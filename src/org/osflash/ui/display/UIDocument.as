@@ -130,7 +130,8 @@ package org.osflash.ui.display
 			}
 			else
 			{
-				const elements : Vector.<IDOMNode> = dom_namespace::children;
+				use namespace dom_namespace;
+				const elements : Vector.<IDOMNode> = children;
 				if(null != elements)
 				{
 					index = elements.length;

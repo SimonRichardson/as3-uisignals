@@ -2,7 +2,6 @@ package org.osflash.ui.display
 {
 	import org.osflash.dom.dom_namespace;
 	import org.osflash.dom.element.IDOMNode;
-	import org.osflash.ui.display.base.ISignalDisplay;
 	import org.osflash.ui.signals.ISignalTarget;
 
 	import flash.display.DisplayObject;
@@ -99,7 +98,8 @@ package org.osflash.ui.display
 				}
 			}
 
-			const elements : Vector.<IDOMNode> = dom_namespace::children;
+			use namespace dom_namespace;
+			const elements : Vector.<IDOMNode> = children;
 			if(null != elements)
 			{
 				var target : ISignalTarget;
@@ -112,59 +112,12 @@ package org.osflash.ui.display
 						target = ISignalTarget(element).captureTarget(point);
 						if(null != target) return target;
 					}
-					else if(element is UIDisplayObjectContainer)
-					{
-						const container : UIDisplayObjectContainer = 
-																UIDisplayObjectContainer(element);
-						const display : DisplayObjectContainer = container.displayObjectContainer;
-						if(display.visible)
-						{
-							target = captureRecursive(display, point);
-							if(null != target) return target;
-						}
-					}
 				}
 			}
 			
 			return hitAreaContainsPoint(point) ? this : null;
 		}
-		
-		/**
-		 * @private
-		 */
-		private function captureRecursive(	container : DisplayObjectContainer, 
-											point : Point
-											) : ISignalTarget
-		{
-
-			var childContainer : DisplayObjectContainer;
-			var target : ISignalTarget;
-
-			var index : int = container.numChildren;
-			while(--index > -1)
-			{
-				const child : DisplayObject = container.getChildAt(index);
-				if(child is ISignalDisplay)
-				{
-					const signal : ISignalDisplay = ISignalDisplay(child);
-					target = signal.target.captureTarget(point);
-					if(null != target) return target;
-				}
-				else if(child is DisplayObjectContainer)
-				{
-					childContainer = DisplayObjectContainer(child);
-
-					if(childContainer.visible)
-					{
-						target = captureRecursive(childContainer, point);
-						if(null != target) return target;
-					}
-				}
-			}
-
-			return null;
-		}
-				
+						
 		/**
 		 * @inheritDoc
 		 */
