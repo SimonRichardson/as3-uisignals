@@ -9,6 +9,7 @@ package org.osflash.ui.display
 	import org.osflash.ui.signals.ISignalRoot;
 	import org.osflash.ui.signals.ISignalTarget;
 	import org.osflash.ui.signals.SignalManager;
+	import org.osflash.ui.signals.SignalTargetInteractiveSignals;
 
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
@@ -39,6 +40,11 @@ package org.osflash.ui.display
 		 * @private
 		 */
 		private var _grid : ISpatialGrid;
+		
+		/**
+		 * @private
+		 */
+		private var _signals : SignalTargetInteractiveSignals;
 				
 		public function UIDocument(stage : Stage, useGrid : Boolean = true)
 		{
@@ -54,7 +60,10 @@ package org.osflash.ui.display
 			
 			_signalManager = new SignalManager(this);
 			
-			if(useGrid)	_grid = new QuadTree(stage.stageWidth, stage.stageHeight);
+			if(useGrid)
+			{
+				_grid = new QuadTree(stage.stageWidth, stage.stageHeight);
+			}
 		}
 		
 		/**
@@ -115,6 +124,7 @@ package org.osflash.ui.display
 			{
 				// Implement a very simple static grid algorithm here!
 				_grid.integrate();
+				
 				const targets : Vector.<ISignalTarget> = _grid.getItemsUnderPoint(point);
 				if(null != targets)
 				{
@@ -176,5 +186,14 @@ package org.osflash.ui.display
 		 * @private
 		 */
 		public function get signalFlags() : int { return 0; }
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get signals() : SignalTargetInteractiveSignals
+		{
+			if(null == _signals) _signals = new SignalTargetInteractiveSignals();
+			return _signals;
+		}
 	}
 }

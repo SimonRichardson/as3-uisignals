@@ -300,18 +300,18 @@ package org.osflash.ui.signals
 			if(null != _focus)
 			{
 				target = _focus;
-				// TODO : Dispatch focusOutSignal
+				target.signals.focusOutSignal.dispatch(_focus, target);
 			}
 			
 			if(null == child)
 				_focus = null;
 			else
 			{
-				//const focusOut : ISignalTarget = _focus;
-				//const focusIn : ISignalTarget = child;
+				const focusOut : ISignalTarget = _focus;
+				const focusIn : ISignalTarget = child;
 				
 				_focus = child;
-				// TODO : Dispatch focusInSignal
+				_focus.signals.focusInSignal.dispatch(focusOut, focusIn);
 			}
 		}
 		
@@ -399,7 +399,7 @@ package org.osflash.ui.signals
 			{
 				setFocus(currentTarget);
 				
-				// TODO : Dispatch mouseDownSignal
+				currentTarget.signals.mouseDownSignal.dispatch(currentTarget, _mouseDownPos);
 				
 				if((currentTarget.signalFlags & SignalFlags.REPEAT_MOUSE_DOWN) != 0)
 				{
@@ -437,7 +437,7 @@ package org.osflash.ui.signals
 
 			if (_mouseLastPos.x != _mousePos.x || _mouseLastPos.y != _mousePos.y)
 			{
-				// TODO : dispatch mouseMoveSignal
+				currentTarget.signals.mouseMoveSignal.dispatch(currentTarget, _mouseDownPos, _mouseDown);
 
 				_mouseLastPos.x = _mousePos.x;
 				_mouseLastPos.y = _mousePos.y;
@@ -464,18 +464,22 @@ package org.osflash.ui.signals
 			for(var i : int = 0; i < total; i++)
 			{
 				const target : ISignalTarget = _dragTargets[i];
-				
-				// TODO : disptch mouseDragOutSignal
+				target.signals.mouseDragOutSignal.dispatch(target, _mousePos, _mouseDown);
 			}
 			
 			const currentTarget : ISignalTarget = _lastTarget;
 			if(null != currentTarget)
 			{
-				// TODO : dispatch mouseUpSignal
+				currentTarget.signals.mouseUpSignal.dispatch(currentTarget, _mouseUpPos);
 				
-				if(getTarget(_mousePos) == currentTarget)
+				if((currentTarget.signalFlags & SignalFlags.RECEIVE_CLICK_EVENTS) != 0)
 				{
-					// TODO : dispatch mouseClickSignal
+					if(getTarget(_mousePos) == currentTarget)
+					{
+						currentTarget.signals.mouseClickSignal.dispatch(	currentTarget, 
+																			_mouseDownPos
+																			);
+					}
 				}
 			}
 		}
@@ -493,7 +497,11 @@ package org.osflash.ui.signals
 		 */
 		private function handleMouseWheelSignal(event : MouseEvent) : void
 		{
-			// TODO : dispatch mouseWheelSignal
+			_hoverTarget.signals.mouseWheelSignal.dispatch(	_hoverTarget, 
+															_mousePos, 
+															event.delta, 
+															_mouseDown
+															);
 		}
 		
 		/**
@@ -525,7 +533,7 @@ package org.osflash.ui.signals
 			if(0x10 == _repeatCount) _repeatTimeout.delay *= 0.5;
 			if(0x20 == _repeatCount) _repeatTimeout.delay *= 0.5;
 		
-			// TODO : dispatch mouseDownSignal
+			_lastTarget.signals.mouseDownSignal.dispatch(_lastTarget, _mouseDownPos);
 		}
 		
 		/**
@@ -540,7 +548,7 @@ package org.osflash.ui.signals
 			_keyDown = true;
 			_keyDownSpace = 0x20 == event.keyCode;
 			
-			// TODO : dispatch keyDownSignal
+			_focus.signals.keyDownSignal.dispatch(_focus, event);
 		}
 		
 		/**
@@ -553,7 +561,7 @@ package org.osflash.ui.signals
 			_keyDown = false;
 			_keyDownSpace = false;
 			
-			// TODO : dispatch keyUpSignal
+			_focus.signals.keyUpSignal.dispatch(_focus, event);
 		}
 		
 		/**
@@ -578,8 +586,7 @@ package org.osflash.ui.signals
 						{
 							_hoverTargetIndexs.push(i);
 							
-							// TODO : dispatch mouseOutSignal
-							
+							target.signals.mouseOutSignal.dispatch(target, _mousePos, _mouseDown);
 							break;
 						}
 						
@@ -593,7 +600,7 @@ package org.osflash.ui.signals
 			{
 				_hoverTargets.push(currentTarget);
 				
-				// TODO : dispatch mouseInSignal
+				currentTarget.signals.mouseInSignal.dispatch(target, _mousePos, _mouseDown);
 			}
 			
 			var index : int = _hoverTargetIndexs.length;
@@ -628,8 +635,11 @@ package org.osflash.ui.signals
 						if(null == activeTarget)
 						{
 							_dragTargetIndexs.push(i);
-							// TODO : dispatch mouseDragOutSignal
 							
+							target.signals.mouseDragOutSignal.dispatch(	target, 
+																		_mousePos, 
+																		_mouseDown
+																		);
 							break;
 						}
 						
@@ -648,7 +658,10 @@ package org.osflash.ui.signals
 				{
 					_dragTargets.push(currentTarget);
 					
-					// TODO : Dispatch mouseDragIn
+					currentTarget.signals.mouseDragInSignal.dispatch(	currentTarget, 
+																		_mousePos, 
+																		_mouseDown
+																		);
 				}
 			}
 			

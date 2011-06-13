@@ -5,6 +5,7 @@ package org.osflash.ui.display
 	import org.osflash.signals.natives.NativeSignal;
 	import org.osflash.ui.display.base.ISignalDisplay;
 	import org.osflash.ui.signals.ISignalTarget;
+	import org.osflash.ui.signals.SignalTargetInteractiveSignals;
 
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
@@ -63,7 +64,11 @@ package org.osflash.ui.display
 		 */
 		private var _nativeRemovedFromStageSignal : ISignal;
 		
-		
+		/**
+		 * @private
+		 */
+		private var _signals : SignalTargetInteractiveSignals;
+				
 		/**
 		 * Construtor for the UIDisplayObject
 		 * 
@@ -279,5 +284,14 @@ package org.osflash.ui.display
 		 * @private
 		 */
 		public function get signalFlags() : int { return 0; }
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get signals() : SignalTargetInteractiveSignals
+		{
+			if(null == _signals) _signals = new SignalTargetInteractiveSignals();
+			return _signals;
+		}
 	}
 }

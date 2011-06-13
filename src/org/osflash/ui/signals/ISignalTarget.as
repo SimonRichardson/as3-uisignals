@@ -16,8 +16,19 @@ package org.osflash.ui.signals
 		 */
 		function captureTarget(point : Point) : ISignalTarget;
 		
+		/**
+		 * The parent in the signal tree.
+		 */
 		function get signalParent() : ISignalTarget;
 		
+		/**
+		 * A bitmask of different behaviours for the ISignalTarget.
+		 */
 		function get signalFlags() : int;
+		
+		/**
+		 * Signals
+		 */
+		function get signals() : SignalTargetInteractiveSignals;
 	}
 }
