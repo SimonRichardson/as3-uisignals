@@ -9,6 +9,12 @@ package org.osflash.ui.signals.support
 	 */
 	public class Circle extends UIShape
 	{
+		public static const UP : int = 0xff00ff;
+		
+		public static const DOWN : int = 0x00ff00;
+		
+		public static const OVER : int = 0x00ffff; 
+		
 		
 		/**
 		 * @private
@@ -25,17 +31,19 @@ package org.osflash.ui.signals.support
 		 */
 		private var _position : Point;
 		
-		public function Circle()
+		public function Circle(radius : int)
 		{
-			_radius = (Math.random() * 10) + 10;
-			_colour = Math.random() * 0xff;
+			_radius = radius;
+			_colour = UP;
 			
 			_position = new Point();
 			
-			graphics.beginFill(_colour, 0.2);
-			graphics.lineStyle(1, 0x0099ff, 0.2);
-			graphics.drawCircle(_radius, _radius, _radius);
-			graphics.endFill();
+			draw();
+			
+			signals.mouseDownSignal.add(handleMouseDownSignal);
+			signals.mouseInSignal.add(handleMouseInSignal);
+			signals.mouseOutSignal.add(handleMouseOutSignal);
+			signals.mouseUpSignal.add(handleMouseUpSignal);
 		}
 		
 		/**
@@ -50,11 +58,7 @@ package org.osflash.ui.signals.support
 			const dy : Number = local.y - _position.y;
 			const distance : Number = Math.sqrt((dx * dx) + (dy * dy));
 			
-			graphics.clear();
-			graphics.beginFill(_colour, 0.2);
-			graphics.lineStyle(1, 0x0000ff, 0.2);
-			graphics.drawCircle(_radius, _radius, _radius);
-			graphics.endFill();
+			draw();
 			
 			const inside : Boolean = (distance <= _radius);
 			graphics.lineStyle(inside ? 2 : 1, inside ? 0x0099ff : 0xff00ff, inside ? 1 : 0.3);
@@ -64,6 +68,76 @@ package org.osflash.ui.signals.support
 			if(distance <= _radius) return this;
 			
 			return null;
+		}
+		
+		/**
+		 * @private
+		 */
+		private function draw() : void
+		{
+			graphics.clear();
+			graphics.beginFill(_colour, 0.3);
+			graphics.lineStyle(1, _colour, 0.5);
+			graphics.drawCircle(_radius, _radius, _radius);
+			graphics.endFill();
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleMouseDownSignal(target : ISignalTarget, mousePos : Point) : void
+		{
+			_colour = DOWN;
+			
+			draw();
+			
+			target;
+			mousePos;
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleMouseInSignal(	target : ISignalTarget, 
+												mousePos : Point, 
+												mouseDown : Boolean
+												) : void
+		{
+			_colour = mouseDown ? DOWN : OVER;
+			
+			draw();
+			
+			target;
+			mousePos;
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleMouseOutSignal(	target : ISignalTarget, 
+												mousePos : Point, 
+												mouseDown : Boolean
+												) : void
+		{
+			_colour = mouseDown ? DOWN : UP;
+			
+			draw();
+			
+			target;
+			mousePos;
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleMouseUpSignal(target : ISignalTarget, mousePos : Point) : void
+		{
+			_colour = UP;
+			
+			draw();	
+			
+			target;
+			mousePos;
 		}
 		
 		/**

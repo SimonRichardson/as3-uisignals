@@ -6,7 +6,6 @@ package org.osflash.ui.display.grid
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.utils.Dictionary;
 
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
@@ -17,7 +16,7 @@ package org.osflash.ui.display.grid
 		/**
 		 * @private
 		 */
-		private var _nodes : Dictionary;
+		private var _nodes : Vector.<UIDisplayObject>;
 		
 		/**
 		 * @private
@@ -31,7 +30,7 @@ package org.osflash.ui.display.grid
 		
 		public function QuadTree(width : int, height : int)
 		{
-			_nodes = new Dictionary();
+			_nodes = new Vector.<UIDisplayObject>();
 			
 			_quad = new QuadTreeQuadrant(new Rectangle(0, 0, width, height), _maxLevels);
 		}
@@ -41,10 +40,10 @@ package org.osflash.ui.display.grid
 		 */
 		public function add(node : UIDisplayObject) : UIDisplayObject
 		{
-			if (null != _nodes[node])
+			if (_nodes.indexOf(node) >= 0)
 				throw new Error('ISignalTarget already exists');
 
-			_nodes[node] = node;
+			_nodes.push(node);
 
 			return node;
 		}
@@ -54,12 +53,18 @@ package org.osflash.ui.display.grid
 		 */
 		public function remove(node : UIDisplayObject) : UIDisplayObject
 		{
-			if (null == _nodes[node])
+			const index : int = _nodes.indexOf(node);
+			if (index == -1)
 				throw new Error('No such ISignalTarget');
-
-			_nodes[node] = null;
-			delete _nodes[node];
-
+			
+			const result : Vector.<UIDisplayObject> = _nodes.splice(index, 1);
+			if(result.length == 0)
+				throw new Error('Remove mismatch');
+			
+			const displayNode : UIDisplayObject = result[0];
+			if(displayNode != node)
+				throw new Error('Remove mismatch');
+			
 			return node;
 		}
 
@@ -93,7 +98,7 @@ package org.osflash.ui.display.grid
 		{
 			_quad.draw(graphics, point);
 		}
-		
+				
 		/**
 		 * @inheritDoc
 		 */

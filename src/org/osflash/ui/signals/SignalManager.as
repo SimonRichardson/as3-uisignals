@@ -437,7 +437,10 @@ package org.osflash.ui.signals
 
 			if (_mouseLastPos.x != _mousePos.x || _mouseLastPos.y != _mousePos.y)
 			{
-				currentTarget.signals.mouseMoveSignal.dispatch(currentTarget, _mouseDownPos, _mouseDown);
+				currentTarget.signals.mouseMoveSignal.dispatch(	currentTarget, 
+																_mouseDownPos, 
+																_mouseDown
+																);
 
 				_mouseLastPos.x = _mousePos.x;
 				_mouseLastPos.y = _mousePos.y;
@@ -472,14 +475,20 @@ package org.osflash.ui.signals
 			{
 				currentTarget.signals.mouseUpSignal.dispatch(currentTarget, _mouseUpPos);
 				
+				const activeTarget : ISignalTarget = getTarget(_mousePos);
 				if((currentTarget.signalFlags & SignalFlags.RECEIVE_CLICK_EVENTS) != 0)
 				{
-					if(getTarget(_mousePos) == currentTarget)
+					if(activeTarget == currentTarget)
 					{
 						currentTarget.signals.mouseClickSignal.dispatch(	currentTarget, 
 																			_mouseDownPos
 																			);
 					}
+				}
+				
+				if(activeTarget == currentTarget)
+				{
+					currentTarget.signals.mouseInSignal.dispatch(target, _mousePos, _mouseDown);
 				}
 			}
 		}
@@ -497,6 +506,8 @@ package org.osflash.ui.signals
 		 */
 		private function handleMouseWheelSignal(event : MouseEvent) : void
 		{
+ 			if(null == _hoverTarget) return;
+ 		
 			_hoverTarget.signals.mouseWheelSignal.dispatch(	_hoverTarget, 
 															_mousePos, 
 															event.delta, 
@@ -608,7 +619,7 @@ package org.osflash.ui.signals
 			var index : int = _hoverTargetIndexs.length;
 			while(--index > -1)
 			{
-				const id : int = _hoverTargetIndexs[index];
+				const id : int = _hoverTargetIndexs.pop();
 				if(id < 0 || id >= _hoverTargets.length) continue;
 				_hoverTargets.splice(id, 1);
 			}
@@ -670,7 +681,7 @@ package org.osflash.ui.signals
 			var index : int = _dragTargetIndexs.length;
 			while(--index > -1)
 			{
-				const id : int = _dragTargetIndexs[index];
+				const id : int = _dragTargetIndexs.pop();
 				if(id < 0 || id >= _dragTargets.length) continue;
 				_dragTargets.splice(id, 1);
 			}

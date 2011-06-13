@@ -80,11 +80,7 @@ package org.osflash.ui.display
 				if(!_container.displayObjectContainer.contains(displayObject))
 					_container.displayObjectContainer.addChild(displayObject);
 				
-				if(null != _grid) 
-				{
-					_grid.add(uiDisplayObject);
-					//_grid.integrate();
-				}
+				if(null != _grid) _grid.add(uiDisplayObject);
 			}
 			
 			return domNode;
@@ -107,11 +103,7 @@ package org.osflash.ui.display
 				if(_container.displayObjectContainer.contains(displayObject))
 					_container.displayObjectContainer.removeChild(displayObject);
 				
-				if(null != _grid) 
-				{
-					_grid.remove(uiDisplayObject);
-					//_grid.integrate();
-				}
+				if(null != _grid) _grid.remove(uiDisplayObject);
 			}
 			
 			return domNode;

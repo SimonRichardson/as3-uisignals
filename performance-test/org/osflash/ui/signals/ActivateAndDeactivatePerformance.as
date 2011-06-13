@@ -5,7 +5,7 @@ package org.osflash.ui.signals
 
 	import flash.display.Sprite;
 	import flash.geom.Point;
-	[SWF(backgroundColor="#FFFFFF", frameRate="60", width="800", height="800")]
+	[SWF(backgroundColor="#1d1d1d", frameRate="60", width="800", height="800")]
 	public class ActivateAndDeactivatePerformance extends Sprite
 	{
 		
@@ -19,9 +19,9 @@ package org.osflash.ui.signals
 			document = new UIDocument(stage, true);
 			document.signals.mouseDownSignal.add(handleMouseDownSignal);
 			
-			for(var i : int = 0; i<1000; i++)
+			for(var i : int = 0; i<4000; i++)
 			{
-				const circle : Circle = new Circle();
+				const circle : Circle = new Circle(10);
 				circle.signals.mouseDownSignal.add(handleMouseDownSignal);
 				
 				const radius : int = circle.radius;
