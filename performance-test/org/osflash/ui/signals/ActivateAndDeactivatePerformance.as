@@ -16,12 +16,13 @@ package org.osflash.ui.signals
 
 		public function ActivateAndDeactivatePerformance()
 		{
-			document = new UIDocument(stage);
+			document = new UIDocument(stage, true);
+			document.signals.mouseDownSignal.add(handleMouseDownSignal);
 			
-			for(var i : int = 0; i<10; i++)
+			for(var i : int = 0; i<1000; i++)
 			{
 				const circle : Circle = new Circle();
-				circle.signals.mouseClickSignal.add(handleMouseClickSignal);
+				circle.signals.mouseDownSignal.add(handleMouseDownSignal);
 				
 				const radius : int = circle.radius;
 				const diameter : int = radius * 2;
@@ -31,9 +32,11 @@ package org.osflash.ui.signals
 				
 				document.add(circle);
 			}
+			
+			document.invalidate();
 		}
 		
-		private function handleMouseClickSignal(target : ISignalTarget, mousePos : Point) : void
+		private function handleMouseDownSignal(target : ISignalTarget, mousePos : Point) : void
 		{
 			trace('Target:' + target + ' at position :' + mousePos);
 		}

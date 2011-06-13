@@ -548,7 +548,8 @@ package org.osflash.ui.signals
 			_keyDown = true;
 			_keyDownSpace = 0x20 == event.keyCode;
 			
-			_focus.signals.keyDownSignal.dispatch(_focus, event);
+			if(null != _focus)
+				_focus.signals.keyDownSignal.dispatch(_focus, event);
 		}
 		
 		/**
@@ -561,7 +562,8 @@ package org.osflash.ui.signals
 			_keyDown = false;
 			_keyDownSpace = false;
 			
-			_focus.signals.keyUpSignal.dispatch(_focus, event);
+			if(null != _focus)
+				_focus.signals.keyUpSignal.dispatch(_focus, event);
 		}
 		
 		/**

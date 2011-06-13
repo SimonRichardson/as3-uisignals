@@ -60,10 +60,7 @@ package org.osflash.ui.display
 			
 			_signalManager = new SignalManager(this);
 			
-			if(useGrid)
-			{
-				_grid = new QuadTree(stage.stageWidth, stage.stageHeight);
-			}
+			if(useGrid) _grid = new QuadTree(stage.stageWidth, stage.stageHeight);
 		}
 		
 		/**
@@ -83,7 +80,11 @@ package org.osflash.ui.display
 				if(!_container.displayObjectContainer.contains(displayObject))
 					_container.displayObjectContainer.addChild(displayObject);
 				
-				if(null != _grid) _grid.add(uiDisplayObject);
+				if(null != _grid) 
+				{
+					_grid.add(uiDisplayObject);
+					//_grid.integrate();
+				}
 			}
 			
 			return domNode;
@@ -106,7 +107,11 @@ package org.osflash.ui.display
 				if(_container.displayObjectContainer.contains(displayObject))
 					_container.displayObjectContainer.removeChild(displayObject);
 				
-				if(null != _grid) _grid.remove(uiDisplayObject);
+				if(null != _grid) 
+				{
+					_grid.remove(uiDisplayObject);
+					//_grid.integrate();
+				}
 			}
 			
 			return domNode;
@@ -123,8 +128,6 @@ package org.osflash.ui.display
 			if(null != _grid)
 			{
 				// Implement a very simple static grid algorithm here!
-				_grid.integrate();
-				
 				const targets : Vector.<ISignalTarget> = _grid.getItemsUnderPoint(point);
 				if(null != targets)
 				{
@@ -157,6 +160,14 @@ package org.osflash.ui.display
 			}
 			
 			return this;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function invalidate() : void
+		{
+			if(null != _grid) _grid.integrate();
 		}
 								
 		/**

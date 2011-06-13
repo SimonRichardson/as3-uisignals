@@ -8,6 +8,8 @@ package org.osflash.ui.signals
 	public interface ISignalRoot extends ISignalTarget
 	{
 		
+		function invalidate() : void;
+		
 		/**
 		 * The Stage which the IUIEventRoot belongs to.
 		 */

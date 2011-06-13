@@ -2,7 +2,6 @@ package org.osflash.ui.signals.support
 {
 	import org.osflash.ui.display.UIShape;
 	import org.osflash.ui.signals.ISignalTarget;
-	import org.osflash.ui.signals.SignalFlags;
 
 	import flash.geom.Point;
 	/**
@@ -28,7 +27,7 @@ package org.osflash.ui.signals.support
 		
 		public function Circle()
 		{
-			_radius = (Math.random() * 50) + 50;
+			_radius = (Math.random() * 10) + 10;
 			_colour = Math.random() * 0xff;
 			
 			_position = new Point();
@@ -97,11 +96,6 @@ package org.osflash.ui.signals.support
 			_position.y = y + _radius;
 			
 			_position = displayObject.globalToLocal(_position);
-		}
-
-		override public function get signalFlags() : int
-		{
-			return super.signalFlags ^ SignalFlags.RECEIVE_CLICK_EVENTS;
 		}
 	}
 }
