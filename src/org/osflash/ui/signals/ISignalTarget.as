@@ -29,7 +29,7 @@ package org.osflash.ui.signals
 		/**
 		 * Signals
 		 */
-		function get signals() : SignalTargetInteractiveSignals;
+		function get signals() : SignalManagerSignalsProxy;
 		
 		/**
 		 * 

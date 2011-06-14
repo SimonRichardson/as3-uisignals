@@ -5,7 +5,7 @@ package org.osflash.ui.display
 	import org.osflash.signals.natives.NativeSignal;
 	import org.osflash.ui.display.base.ISignalDisplay;
 	import org.osflash.ui.signals.ISignalTarget;
-	import org.osflash.ui.signals.SignalTargetInteractiveSignals;
+	import org.osflash.ui.signals.SignalManagerSignalsProxy;
 
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
@@ -67,7 +67,7 @@ package org.osflash.ui.display
 		/**
 		 * @private
 		 */
-		private var _signals : SignalTargetInteractiveSignals;
+		private var _signals : SignalManagerSignalsProxy;
 				
 		/**
 		 * Construtor for the UIDisplayObject
@@ -288,9 +288,9 @@ package org.osflash.ui.display
 		/**
 		 * @inheritDoc
 		 */
-		public function get signals() : SignalTargetInteractiveSignals
+		public function get signals() : SignalManagerSignalsProxy
 		{
-			if(null == _signals) _signals = new SignalTargetInteractiveSignals();
+			if(null == _signals) _signals = new SignalManagerSignalsProxy();
 			return _signals;
 		}
 	}

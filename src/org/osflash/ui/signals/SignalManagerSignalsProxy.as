@@ -9,7 +9,7 @@ package org.osflash.ui.signals
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
-	public class SignalTargetInteractiveSignals
+	public class SignalManagerSignalsProxy
 	{
 
 		/**
@@ -77,7 +77,7 @@ package org.osflash.ui.signals
 		 */
 		private var _keyUpSignal : ISignal;
 
-		public function SignalTargetInteractiveSignals()
+		public function SignalManagerSignalsProxy()
 		{
 			
 		}

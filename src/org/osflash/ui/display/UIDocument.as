@@ -9,7 +9,7 @@ package org.osflash.ui.display
 	import org.osflash.ui.signals.ISignalRoot;
 	import org.osflash.ui.signals.ISignalTarget;
 	import org.osflash.ui.signals.SignalManager;
-	import org.osflash.ui.signals.SignalTargetInteractiveSignals;
+	import org.osflash.ui.signals.SignalManagerSignalsProxy;
 
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
@@ -44,7 +44,7 @@ package org.osflash.ui.display
 		/**
 		 * @private
 		 */
-		private var _signals : SignalTargetInteractiveSignals;
+		private var _signals : SignalManagerSignalsProxy;
 				
 		public function UIDocument(stage : Stage, useGrid : Boolean = true)
 		{
@@ -193,9 +193,9 @@ package org.osflash.ui.display
 		/**
 		 * @inheritDoc
 		 */
-		public function get signals() : SignalTargetInteractiveSignals
+		public function get signals() : SignalManagerSignalsProxy
 		{
-			if(null == _signals) _signals = new SignalTargetInteractiveSignals();
+			if(null == _signals) _signals = new SignalManagerSignalsProxy();
 			return _signals;
 		}
 	}
