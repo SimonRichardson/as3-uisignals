@@ -171,5 +171,10 @@ package org.osflash.ui.signals.support
 			
 			_position = displayObject.globalToLocal(_position);
 		}
+		
+		override public function toString() : String 
+		{
+			return "[Circle]";
+		}
 	}
 }
