@@ -1,5 +1,8 @@
 package org.osflash.ui.signals
 {
+	import flash.display.DisplayObjectContainer;
+	import flash.errors.IllegalOperationError;
+	import org.osflash.ui.display.base.ISignalDisplay;
 	import flash.events.TransformGestureEvent;
 	import org.osflash.logger.utils.info;
 	import org.osflash.logger.utils.warn;
@@ -158,6 +161,16 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
+		private var _gesturesEnabled : Boolean;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeAddedSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
 		private var _nativeActivateSignal : ISignal;
 		
 		/**
@@ -282,7 +295,7 @@ package org.osflash.ui.signals
 			_repeatThreshold.stop();
 			_repeatTimeout.stop();
 			
-			if(Multitouch.supportsGestureEvents)
+			if(_gesturesEnabled)
 			{
 				_gesturePos.x = 0;
 				_gesturePos.y = 0;
@@ -327,7 +340,11 @@ package org.osflash.ui.signals
 			_nativeActivateSignal = new NativeSignal(_stage, Event.ACTIVATE);
 			_nativeActivateSignal.add(handleActiveSignal);
 			
+			_nativeAddedSignal = new NativeSignal(_stage, Event.ADDED);
+			_nativeAddedSignal.add(handleAddedSignal);
+			
 			_nativeDeactivateSignal = new NativeSignal(_stage, Event.DEACTIVATE);
+			
 			_nativeMouseDownSignal = new NativeSignal(_stage, MouseEvent.MOUSE_DOWN, MouseEvent);
 			_nativeMouseMoveSignal = new NativeSignal(_stage, MouseEvent.MOUSE_MOVE, MouseEvent);
 			_nativeMouseUpSignal = new NativeSignal(_stage, MouseEvent.MOUSE_UP, MouseEvent);
@@ -345,7 +362,9 @@ package org.osflash.ui.signals
 			_repeatTimeout = new Timer(REPEAT_TIMEOUT, 0);
 			_nativeRepeatTimeoutSignal = new NativeSignal(_repeatThreshold, TimerEvent.TIMER);
 			
-			if(Multitouch.supportsGestureEvents)
+			_gesturesEnabled = Multitouch.supportsGestureEvents;
+			
+			if(_gesturesEnabled)
 			{
 				Multitouch.inputMode = MultitouchInputMode.GESTURE;
 				
@@ -436,6 +455,25 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
+		private function handleAddedSignal(event : Event) : void
+		{
+			const display : ISignalDisplay = event.target as ISignalDisplay;
+			if(	(null != display) && 
+				(display != _root.displayObjectContainer) &&
+				(null == display.target.signalParent)
+				)
+			{
+				throw new IllegalOperationError('ISignalTarget is broken because it has been ' +
+								'added directly to the stage. Use UISignalManager.root instead.');
+			}
+			
+			if(display is DisplayObjectContainer)
+				DisplayObjectContainer(display).mouseEnabled = false;
+		}
+		
+		/**
+		 * @private
+		 */
 		private function handleActiveSignal(event : Event) : void
 		{
 			_enabled = true;
@@ -456,10 +494,13 @@ package org.osflash.ui.signals
 			_nativeRepeatThresholdSignal.add(handleRepeatThresholdSignal);
 			_nativeRepeatTimeoutSignal.add(handleRepeatTimeoutSignal);
 			
-			_nativeGestureZoomSignal.add(handleGestureSignal);
-			_nativeGestureSwipeSignal.add(handleGestureSignal);
-			_nativeGesturePanSignal.add(handleGestureSignal);
-			_nativeGestureRotateSignal.add(handleGestureSignal);
+			if(_gesturesEnabled)
+			{
+				_nativeGestureZoomSignal.add(handleGestureSignal);
+				_nativeGestureSwipeSignal.add(handleGestureSignal);
+				_nativeGesturePanSignal.add(handleGestureSignal);
+				_nativeGestureRotateSignal.add(handleGestureSignal);
+			}
 		}
 		
 		/**
@@ -483,10 +524,13 @@ package org.osflash.ui.signals
 			_nativeRepeatThresholdSignal.remove(handleRepeatThresholdSignal);
 			_nativeRepeatTimeoutSignal.remove(handleRepeatTimeoutSignal);
 			
-			_nativeGestureZoomSignal.remove(handleGestureSignal);
-			_nativeGestureSwipeSignal.remove(handleGestureSignal);
-			_nativeGesturePanSignal.remove(handleGestureSignal);
-			_nativeGestureRotateSignal.remove(handleGestureSignal);
+			if(_gesturesEnabled)
+			{
+				_nativeGestureZoomSignal.remove(handleGestureSignal);
+				_nativeGestureSwipeSignal.remove(handleGestureSignal);
+				_nativeGesturePanSignal.remove(handleGestureSignal);
+				_nativeGestureRotateSignal.remove(handleGestureSignal);
+			}
 			
 			if(_mouseDown) handleMouseUpSignal(null);
 			if(_keyDown) handleKeyDownSignal(null);
