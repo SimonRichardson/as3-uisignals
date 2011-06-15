@@ -344,7 +344,7 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
-		public function isGesturePanSignalActive() : Boolean
+		public function get isGesturePanSignalActive() : Boolean
 		{
 			return null != _gesturePanSignal;
 		}
@@ -362,7 +362,7 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
-		public function isGestureRotateSignalActive() : Boolean
+		public function get isGestureRotateSignalActive() : Boolean
 		{
 			return null != _gestureRotateSignal;
 		}
@@ -380,7 +380,7 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
-		public function isGestureSwipeSignalActive() : Boolean
+		public function get isGestureSwipeSignalActive() : Boolean
 		{
 			return null != _gestureSwipeSignal;
 		}
@@ -398,7 +398,7 @@ package org.osflash.ui.signals
 		/**
 		 * @private
 		 */
-		public function isGestureZoomSignalActive() : Boolean
+		public function get isGestureZoomSignalActive() : Boolean
 		{
 			return null != _gestureZoomSignal;
 		}
