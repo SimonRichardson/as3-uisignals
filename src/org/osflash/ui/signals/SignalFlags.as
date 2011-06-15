@@ -11,5 +11,7 @@ package org.osflash.ui.signals
 		public static const RECEIVE_DRAG_EVENTS : int = 2;
 
 		public static const RECEIVE_CLICK_EVENTS : int = 4;
+		
+		public static const RECEIVE_GESTURE_EVENTS : int = 8;
 	}
 }

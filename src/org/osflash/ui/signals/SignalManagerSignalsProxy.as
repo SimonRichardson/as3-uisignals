@@ -9,7 +9,7 @@ package org.osflash.ui.signals
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
 	 */
-	public class SignalManagerSignalsProxy
+	public final class SignalManagerSignalsProxy
 	{
 
 		/**
@@ -76,11 +76,26 @@ package org.osflash.ui.signals
 		 * @private
 		 */
 		private var _keyUpSignal : ISignal;
-
-		public function SignalManagerSignalsProxy()
-		{
-			
-		}
+		
+		/**
+		 * @private
+		 */
+		private var _gesturePanSignal : Signal;
+		
+		/**
+		 * @private
+		 */
+		private var _gestureRotateSignal : Signal;
+		
+		/**
+		 * @private
+		 */
+		private var _gestureSwipeSignal : Signal;
+		
+		/**
+		 * @private
+		 */
+		private var _gestureZoomSignal : Signal;
 
 		/**
 		 * @inheritDoc
@@ -314,6 +329,78 @@ package org.osflash.ui.signals
 		public function get isKeyUpSignalActive() : Boolean
 		{
 			return null != _keyUpSignal;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function get gesturePanSignal() : ISignal
+		{
+			if(null == _gesturePanSignal)
+				_gesturePanSignal = new Signal();
+			return _gesturePanSignal;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function isGesturePanSignalActive() : Boolean
+		{
+			return null != _gesturePanSignal;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function get gestureRotateSignal() : ISignal
+		{
+			if(null == _gestureRotateSignal)
+				_gestureRotateSignal = new Signal();
+			return _gestureRotateSignal;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function isGestureRotateSignalActive() : Boolean
+		{
+			return null != _gestureRotateSignal;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function get gestureSwipeSignal() : ISignal
+		{
+			if(null == _gestureSwipeSignal)
+				_gestureSwipeSignal = new Signal();
+			return _gestureSwipeSignal;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function isGestureSwipeSignalActive() : Boolean
+		{
+			return null != _gestureSwipeSignal;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function get gestureZoomSignal() : ISignal
+		{
+			if(null == _gestureZoomSignal)
+				_gestureZoomSignal = new Signal();
+			return _gestureZoomSignal;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function isGestureZoomSignalActive() : Boolean
+		{
+			return null != _gestureZoomSignal;
 		}
 	}
 }

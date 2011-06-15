@@ -82,7 +82,7 @@ package org.osflash.ui.display
 		 */
 		override public function captureTarget(point : Point) : ISignalTarget
 		{
-			if(!_displayObjectContainer.visible) return null;
+			if(!_displayObjectContainer.visible || !enabled) return null;
 			
 			if(hasScrollRect)
 			{

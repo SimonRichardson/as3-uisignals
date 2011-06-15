@@ -68,6 +68,11 @@ package org.osflash.ui.display
 		 * @private
 		 */
 		private var _signals : SignalManagerSignalsProxy;
+		
+		/**
+		 * @private
+		 */
+		private var _enabled : Boolean;
 				
 		/**
 		 * Construtor for the UIDisplayObject
@@ -81,6 +86,8 @@ package org.osflash.ui.display
 			if(null == displayObject) throw new ArgumentError('Given value can not be null');
 			if(!(displayObject is ISignalDisplay)) throw new ArgumentError('Given value must ' +
 															'implement ISignalDisplay');
+			
+			_enabled = true;
 			
 			_displayObject = displayObject;
 			
@@ -111,7 +118,7 @@ package org.osflash.ui.display
 		 */
 		public function captureTarget(point : Point) : ISignalTarget
 		{
-			if(!_displayObject.visible) return null;
+			if(!_displayObject.visible || !enabled) return null;
 			
 			if(_hasScrollRect)
 			{
@@ -276,12 +283,18 @@ package org.osflash.ui.display
 		}
 		
 		/**
-		 * @private
+		 * @inheritDoc
+		 */
+		public function get enabled() : Boolean { return _enabled; }
+		public function set enabled(value : Boolean) : void { _enabled = value; } 
+		
+		/**
+		 * @inheritDoc
 		 */
 		public function get signalParent() : ISignalTarget { return _signalParent; }
 		
 		/**
-		 * @private
+		 * @inheritDoc
 		 */
 		public function get signalFlags() : int { return 0; }
 		

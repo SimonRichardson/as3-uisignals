@@ -51,7 +51,7 @@ package org.osflash.ui.signals.support
 		 */	
 		override public function captureTarget(point : Point) : ISignalTarget
 		{
-			if(!displayObject.visible) return null;
+			if(!displayObject.visible || !enabled) return null;
 						
 			const local : Point = displayObject.globalToLocal(point);
 			const dx : Number = local.x - _position.x;
@@ -65,9 +65,7 @@ package org.osflash.ui.signals.support
 			graphics.moveTo(_position.x, _position.y);
 			graphics.lineTo(local.x, local.y);
 			
-			if(distance <= _radius) return this;
-			
-			return null;
+			return (distance <= _radius) ? this : null;
 		}
 		
 		/**
@@ -76,7 +74,7 @@ package org.osflash.ui.signals.support
 		private function draw() : void
 		{
 			graphics.clear();
-			graphics.beginFill(_colour, 0.3);
+			graphics.beginFill(_colour, 0.1);
 			graphics.lineStyle(1, _colour, 0.5);
 			graphics.drawCircle(_radius, _radius, _radius);
 			graphics.endFill();
@@ -170,11 +168,6 @@ package org.osflash.ui.signals.support
 			_position.y = y + _radius;
 			
 			_position = displayObject.globalToLocal(_position);
-		}
-		
-		override public function toString() : String 
-		{
-			return "[Circle]";
 		}
 	}
 }

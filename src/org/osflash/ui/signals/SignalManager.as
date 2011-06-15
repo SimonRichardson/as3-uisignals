@@ -1,5 +1,8 @@
 package org.osflash.ui.signals
 {
+	import flash.events.TransformGestureEvent;
+	import org.osflash.logger.utils.info;
+	import org.osflash.logger.utils.warn;
 	import org.osflash.signals.ISignal;
 	import org.osflash.signals.natives.NativeSignal;
 	import org.osflash.ui.utils.SignalManagerFrameRate;
@@ -11,6 +14,8 @@ package org.osflash.ui.signals
 	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import flash.text.TextField;
+	import flash.ui.Multitouch;
+	import flash.ui.MultitouchInputMode;
 	import flash.utils.Timer;
 	/**
 	 * @author Simon Richardson - simon@ustwo.co.uk
@@ -83,6 +88,24 @@ package org.osflash.ui.signals
 		private var _mouseDownPos : Point;
 		
 		/**
+		 * The gesture position
+		 * @private
+		 */
+		private var _gesturePos : Point;
+
+		/**
+		 * The gesture offset
+		 * @private
+		 */
+		private var _gestureOffset : Point;
+
+		/**
+		 * The gesture scale
+		 * @private
+		 */
+		private var _gestureScale : Point;
+		
+		/**
 		 * @private
 		 */
 		private var _hoverTargets : Vector.<ISignalTarget>;
@@ -141,12 +164,7 @@ package org.osflash.ui.signals
 		 * @private
 		 */
 		private var _nativeDeactivateSignal : ISignal;
-		
-		/**
-		 * @private
-		 */
-		private var _nativeEnterFrameSignal : ISignal;
-		
+				
 		/**
 		 * @private
 		 */
@@ -191,6 +209,26 @@ package org.osflash.ui.signals
 		 * @private
 		 */
 		private var _nativeKeyUpSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeGestureZoomSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeGestureSwipeSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeGesturePanSignal : ISignal;
+		
+		/**
+		 * @private
+		 */
+		private var _nativeGestureRotateSignal : ISignal;
 
 		/**
 		 * SignalManager Constructor.
@@ -203,6 +241,73 @@ package org.osflash.ui.signals
 			
 			_root = root;
 			_stage = root.stage;
+			
+			init();
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function stealCapture(target : ISignalTarget) : void
+		{
+			_lastTarget = target;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function reset() : void
+		{
+			_focus = null;
+			_hoverTarget = null;
+			_lastTarget = null;
+			
+			_mousePos.x = 0;
+			_mousePos.y = 0;
+			_mouseUpPos.x = 0;
+			_mouseUpPos.y = 0;
+			_mouseLastPos.x = 0;
+			_mouseLastPos.y = 0;
+			_mouseDownPos.x = 0;
+			_mouseDownPos.y = 0;
+			
+			_hoverTargets.length = 0;
+			_hoverTargetIndexs.length = 0;
+			
+			_dragTargets.length = 0;
+			_dragTargetIndexs.length = 0;
+			
+			_repeatCount = 0;
+			
+			_repeatThreshold.stop();
+			_repeatTimeout.stop();
+			
+			if(Multitouch.supportsGestureEvents)
+			{
+				_gesturePos.x = 0;
+				_gesturePos.y = 0;
+				_gestureOffset.x = 0;
+				_gestureOffset.y = 0;
+				_gestureScale.x = 0;
+				_gestureScale.y = 0;
+			}
+			
+			for (var i : int = 0;i < 0x100; i++)
+			{
+				_keyTable[i] = false;
+			}
+			_keyDown = false;
+			_keyDownSpace = false;
+		}
+		
+		/**
+		 * @private
+		 */
+		private function init() :  void
+		{
+			_focus = null;
+			_hoverTarget = null;
+			_lastTarget = null;
 			
 			_stage.stageFocusRect = false;
 			
@@ -223,14 +328,12 @@ package org.osflash.ui.signals
 			_nativeActivateSignal.add(handleActiveSignal);
 			
 			_nativeDeactivateSignal = new NativeSignal(_stage, Event.DEACTIVATE);
-			_nativeEnterFrameSignal = new NativeSignal(_stage, Event.ENTER_FRAME);
-			
 			_nativeMouseDownSignal = new NativeSignal(_stage, MouseEvent.MOUSE_DOWN, MouseEvent);
 			_nativeMouseMoveSignal = new NativeSignal(_stage, MouseEvent.MOUSE_MOVE, MouseEvent);
 			_nativeMouseUpSignal = new NativeSignal(_stage, MouseEvent.MOUSE_UP, MouseEvent);
 			_nativeMouseLeaveSignal = new NativeSignal(_stage, Event.MOUSE_LEAVE);
 			_nativeMouseWheelSignal = new NativeSignal(_stage, MouseEvent.MOUSE_WHEEL, MouseEvent);
-			
+						
 			_nativeKeyDownSignal = new NativeSignal(_stage, KeyboardEvent.KEY_DOWN, KeyboardEvent);
 			_nativeKeyUpSignal = new NativeSignal(_stage, KeyboardEvent.KEY_UP, KeyboardEvent);
 			
@@ -242,6 +345,32 @@ package org.osflash.ui.signals
 			_repeatTimeout = new Timer(REPEAT_TIMEOUT, 0);
 			_nativeRepeatTimeoutSignal = new NativeSignal(_repeatThreshold, TimerEvent.TIMER);
 			
+			if(Multitouch.supportsGestureEvents)
+			{
+				Multitouch.inputMode = MultitouchInputMode.GESTURE;
+				
+				_gesturePos = new Point();
+				_gestureOffset = new Point();
+				_gestureScale = new Point();
+				
+				_nativeGestureZoomSignal = new NativeSignal(	_stage, 
+																TransformGestureEvent.GESTURE_ZOOM, 
+																TransformGestureEvent
+																);
+				_nativeGestureSwipeSignal = new NativeSignal(	_stage, 
+																TransformGestureEvent.GESTURE_SWIPE, 
+																TransformGestureEvent
+																);
+				_nativeGesturePanSignal = new NativeSignal(		_stage, 
+																TransformGestureEvent.GESTURE_PAN, 
+																TransformGestureEvent
+																);
+				_nativeGestureRotateSignal = new NativeSignal(	_stage, 
+																TransformGestureEvent.GESTURE_ROTATE, 
+																TransformGestureEvent
+																);
+			}
+			
 			_keyTable = new Vector.<Boolean>();
 			for (var i : int = 0;i < 0x100; i++)
 			{
@@ -249,22 +378,6 @@ package org.osflash.ui.signals
 			}
 			_keyDown = false;
 			_keyDownSpace = false;
-		}
-		
-		/**
-		 * @inheritDoc
-		 */
-		public function stealCapture(target : ISignalTarget) : void
-		{
-			_lastTarget = target;
-		}
-		
-		/**
-		 * @inheritDoc
-		 */
-		public function reset() : void
-		{
-			_focus = null;
 		}
 		
 		/**
@@ -331,7 +444,6 @@ package org.osflash.ui.signals
 			
 			_nativeDeactivateSignal.add(handleDeactivateSignal);
 			
-			_nativeEnterFrameSignal.add(handleEnterFrameSignal);
 			_nativeMouseDownSignal.add(handleMouseDownSignal);
 			_nativeMouseMoveSignal.add(handleMouseMoveSignal);
 			_nativeMouseUpSignal.add(handleMouseUpSignal);
@@ -343,6 +455,11 @@ package org.osflash.ui.signals
 			
 			_nativeRepeatThresholdSignal.add(handleRepeatThresholdSignal);
 			_nativeRepeatTimeoutSignal.add(handleRepeatTimeoutSignal);
+			
+			_nativeGestureZoomSignal.add(handleGestureSignal);
+			_nativeGestureSwipeSignal.add(handleGestureSignal);
+			_nativeGesturePanSignal.add(handleGestureSignal);
+			_nativeGestureRotateSignal.add(handleGestureSignal);
 		}
 		
 		/**
@@ -354,7 +471,6 @@ package org.osflash.ui.signals
 			
 			_stage.frameRate = _frameRate.min;
 			
-			_nativeEnterFrameSignal.remove(handleEnterFrameSignal);
 			_nativeMouseDownSignal.remove(handleMouseDownSignal);
 			_nativeMouseMoveSignal.remove(handleMouseMoveSignal);
 			_nativeMouseUpSignal.remove(handleMouseUpSignal);
@@ -367,18 +483,15 @@ package org.osflash.ui.signals
 			_nativeRepeatThresholdSignal.remove(handleRepeatThresholdSignal);
 			_nativeRepeatTimeoutSignal.remove(handleRepeatTimeoutSignal);
 			
+			_nativeGestureZoomSignal.remove(handleGestureSignal);
+			_nativeGestureSwipeSignal.remove(handleGestureSignal);
+			_nativeGesturePanSignal.remove(handleGestureSignal);
+			_nativeGestureRotateSignal.remove(handleGestureSignal);
+			
 			if(_mouseDown) handleMouseUpSignal(null);
 			if(_keyDown) handleKeyDownSignal(null);
 		}
-		
-		/**
-		 * @private
-		 */
-		private function handleEnterFrameSignal(event : Event) : void
-		{
-			handleMouseMove();
-		}
-		
+				
 		/**
 		 * @private
 		 */
@@ -386,7 +499,7 @@ package org.osflash.ui.signals
 		{
 			if(_mouseDown)
 			{
-				// TODO : Warn about an invalid sequence here.
+				warn('Invalid MouseDown Sequence detected.');
 				
 				handleMouseUpSignal(null);
 			}
@@ -418,7 +531,7 @@ package org.osflash.ui.signals
 			
 			_lastTarget = currentTarget;
 			
-			// TODO : log out a target here!
+			info('Target : ', currentTarget);
 		}
 		
 		/**
@@ -429,14 +542,6 @@ package org.osflash.ui.signals
 			_mousePos.x = (null == event ? _stage.mouseX : event.stageX);
 			_mousePos.y = (null == event ? _stage.mouseY : event.stageY);
 			
-			handleMouseMove();
-		}
-		
-		/**
-		 * @private
-		 */
-		private function handleMouseMove() : void
-		{
 			const currentTarget : ISignalTarget = _mouseDown ? _lastTarget : getTarget(_mousePos);
 			_hoverTarget = currentTarget;
 
@@ -739,6 +844,60 @@ package org.osflash.ui.signals
 				if(id < 0 || id >= _dragTargets.length) continue;
 				_dragTargets.splice(id, 1);
 			}
+		}
+		
+		/**
+		 * @private
+		 */
+		private function handleGestureSignal(event : TransformGestureEvent) : void
+		{
+			_gesturePos.x = event == null ? _stage.mouseX : event.stageX;
+			_gesturePos.y = event == null ? _stage.mouseY : event.stageY;
+
+			_gestureOffset.x = event == null ? 0 : event.offsetX;
+			_gestureOffset.y = event == null ? 0 : event.offsetY;
+
+			_gestureScale.x = event == null ? 0 : event.scaleX;
+			_gestureScale.y = event == null ? 0 : event.scaleY;
+			
+			var signal : ISignal;
+			
+			const currentTarget : ISignalTarget = getTarget(_gesturePos);
+			if((currentTarget.signalFlags & SignalFlags.RECEIVE_GESTURE_EVENTS) != 0)
+			{
+				switch(event.type)
+				{
+					case TransformGestureEvent.GESTURE_PAN:
+						if(currentTarget.signals.isGesturePanSignalActive)
+							signal = currentTarget.signals.gesturePanSignal;
+						break;
+					case TransformGestureEvent.GESTURE_ROTATE:
+						if(currentTarget.signals.isGestureRotateSignalActive)
+							signal = currentTarget.signals.gestureRotateSignal;
+						break;
+					case TransformGestureEvent.GESTURE_SWIPE:
+						if(currentTarget.signals.isGestureSwipeSignalActive)
+							signal = currentTarget.signals.gestureSwipeSignal;
+						break;
+					case TransformGestureEvent.GESTURE_ZOOM:
+						if(currentTarget.signals.isGestureZoomSignalActive)
+							signal = currentTarget.signals.gestureZoomSignal;
+						break;
+					default:
+						throw new Error('Unknown TransformGestureEvent');
+				}
+				
+				if(null != signal)
+				{
+					signal.dispatch(	currentTarget, 
+										event.phase, 
+										_gesturePos, 
+										_gestureOffset, 
+										_gestureScale, 
+										event.rotation
+										);
+				}		
+			}	
 		}
 		
 		/**
