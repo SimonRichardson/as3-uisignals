@@ -659,7 +659,10 @@ package org.osflash.ui.signals
 				{
 					if(currentTarget.signals.isMouseInSignalActive)
 					{
-						currentTarget.signals.mouseInSignal.dispatch(target, _mousePos, _mouseDown);
+						currentTarget.signals.mouseInSignal.dispatch(	currentTarget, 
+																		_mousePos, 
+																		_mouseDown
+																		);
 					}
 				}
 			}
