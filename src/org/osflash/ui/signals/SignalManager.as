@@ -1,21 +1,23 @@
 package org.osflash.ui.signals
 {
-	import flash.display.DisplayObjectContainer;
-	import flash.errors.IllegalOperationError;
-	import org.osflash.ui.display.base.ISignalDisplay;
-	import flash.events.TransformGestureEvent;
 	import org.osflash.logger.utils.info;
 	import org.osflash.logger.utils.warn;
 	import org.osflash.signals.ISignal;
 	import org.osflash.signals.natives.NativeSignal;
+	import org.osflash.ui.display.base.ISignalDisplay;
 	import org.osflash.ui.utils.SignalManagerFrameRate;
 
+	import flash.display.DisplayObjectContainer;
 	import flash.display.Stage;
+	import flash.errors.IllegalOperationError;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.events.TransformGestureEvent;
 	import flash.geom.Point;
+	import flash.system.Capabilities;
+	import flash.system.TouchscreenType;
 	import flash.text.TextField;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
@@ -162,6 +164,11 @@ package org.osflash.ui.signals
 		 * @private
 		 */
 		private var _gesturesEnabled : Boolean;
+		
+		/**
+		 * @private
+		 */
+		private var _touchScreenEnabled : Boolean;
 		
 		/**
 		 * @private
@@ -389,6 +396,8 @@ package org.osflash.ui.signals
 																TransformGestureEvent
 																);
 			}
+			
+			_touchScreenEnabled = Capabilities.touchscreenType != TouchscreenType.NONE;
 			
 			_keyTable = new Vector.<Boolean>();
 			for (var i : int = 0;i < 0x100; i++)
@@ -655,7 +664,8 @@ package org.osflash.ui.signals
 					}
 				}
 				
-				if(activeTarget == currentTarget)
+				// Only dispatch a mouseInSignal if we're not a touch screen.
+				if(!_touchScreenEnabled && activeTarget == currentTarget)
 				{
 					if(currentTarget.signals.isMouseInSignalActive)
 					{
