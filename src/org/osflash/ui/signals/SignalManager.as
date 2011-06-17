@@ -606,7 +606,7 @@ package org.osflash.ui.signals
 				if(currentTarget.signals.isMouseMoveSignalActive)
 				{
 					currentTarget.signals.mouseMoveSignal.dispatch(	currentTarget, 
-																	_mouseDownPos, 
+																	_mousePos, 
 																	_mouseDown
 																	);
 				}
