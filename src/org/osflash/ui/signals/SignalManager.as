@@ -379,22 +379,39 @@ package org.osflash.ui.signals
 				_gestureOffset = new Point();
 				_gestureScale = new Point();
 				
-				_nativeGestureZoomSignal = new NativeSignal(	_stage, 
+				// Be ultra safe, as there are known devices which only support a selection of these
+				const gestures : Vector.<String> = Multitouch.supportedGestures;
+				if(gestures.indexOf(TransformGestureEvent.GESTURE_ZOOM) >= 0)
+				{
+					_nativeGestureZoomSignal = new NativeSignal(_stage, 
 																TransformGestureEvent.GESTURE_ZOOM, 
 																TransformGestureEvent
 																);
-				_nativeGestureSwipeSignal = new NativeSignal(	_stage, 
+				}
+				
+				if(gestures.indexOf(TransformGestureEvent.GESTURE_SWIPE) >= 0)
+				{
+					_nativeGestureSwipeSignal = new NativeSignal(_stage, 
 																TransformGestureEvent.GESTURE_SWIPE, 
 																TransformGestureEvent
 																);
-				_nativeGesturePanSignal = new NativeSignal(		_stage, 
+				}
+				
+				if(gestures.indexOf(TransformGestureEvent.GESTURE_PAN) >= 0)
+				{
+					_nativeGesturePanSignal = new NativeSignal(	_stage, 
 																TransformGestureEvent.GESTURE_PAN, 
 																TransformGestureEvent
 																);
-				_nativeGestureRotateSignal = new NativeSignal(	_stage, 
-																TransformGestureEvent.GESTURE_ROTATE, 
-																TransformGestureEvent
-																);
+				}
+				
+				if(gestures.indexOf(TransformGestureEvent.GESTURE_ROTATE) >= 0)
+				{
+					_nativeGestureRotateSignal = new NativeSignal(_stage, 
+															TransformGestureEvent.GESTURE_ROTATE, 
+															TransformGestureEvent
+															);
+				}
 			}
 			
 			_touchScreenEnabled = Capabilities.touchscreenType != TouchscreenType.NONE;
